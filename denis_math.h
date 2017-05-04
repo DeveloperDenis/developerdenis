@@ -21,6 +21,38 @@ static inline Vector2 V2(int32 x, int32 y)
     return result;
 }
 
+Vector2 operator+(Vector2 left, Vector2 right)
+{
+    Vector2 result;
+    result.x = left.x + right.x;
+    result.y = left.y + right.y;
+    return result;
+}
+
+Vector2 operator-(Vector2 left, Vector2 right)
+{
+    Vector2 result;
+    result.x = left.x - right.x;
+    result.y = left.y - right.y;
+    return result;
+}
+
+Vector2 operator*(Vector2 left, int32 right)
+{
+    Vector2 result;
+    result.x = left.x * right;
+    result.y = left.y * right;
+    return result;
+}
+
+Vector2 operator/(Vector2 left, int32 right)
+{
+    Vector2 result;
+    result.x = left.x / right;
+    result.y = left.y / right;
+    return result;
+}
+
 struct Rectangle
 {
     Vector2 min;
