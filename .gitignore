@@ -50,3 +50,5 @@ Temporary Items
 tests/build.bat~
 *.obj
 tests/test.exe
+*.bat
+tests/test.c
