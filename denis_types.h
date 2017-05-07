@@ -24,8 +24,15 @@ typedef double real64;
 #ifndef __cplusplus
 typedef enum { FALSE, TRUE } bool;
 #else
+
+#ifndef TRUE
 #define TRUE true
+#endif
+
+#ifndef FALSE
 #define FALSE false
+#endif
+
 #endif
 
 #endif
