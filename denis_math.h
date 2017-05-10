@@ -9,6 +9,13 @@
 
 #include "denis_types.h"
 
+#ifndef MIN
+#define MIN(x, y) ((x) < (y) ? (x) : (y))
+#endif
+#ifndef MAX
+#define MAX(x, y) ((x) > (y) ? (x) : (y))
+#endif
+
 struct Vector2
 {
     int32 x;
