@@ -72,6 +72,26 @@ struct Rectangle
 
     int32 getWidth() { return max.x - min.x; };
     int32 getHeight() { return max.y - min.y; };
+
+    void setY(int32 newY)
+    {
+	int32 height = max.y - min.y;
+	min.y = newY;
+	max.y = newY + height;
+    };
+
+    void setX(int32 newX)
+    {
+	int32 width = max.x - min.x;
+	min.x = newX;
+	max.x = newX + width;
+    };
+
+    void setPos(Vector2 newPos)
+    {
+	setY(newPos.y);
+	setX(newPos.x);
+    };
 };
 
 static inline Rectangle Rect(int32 x, int32 y, int32 width, int32 height)
