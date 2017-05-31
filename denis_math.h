@@ -9,12 +9,17 @@
 
 #include "denis_types.h"
 
+//TODO(denis): remove this eventually?
+#include "math.h"
+
 #ifndef MIN
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
 #endif
 #ifndef MAX
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
 #endif
+
+#define ABS_VALUE(x) ((x) < 0 ? -(x) : (x))
 
 struct Vector2
 {

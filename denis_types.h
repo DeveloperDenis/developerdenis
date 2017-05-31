@@ -35,4 +35,8 @@ typedef enum { FALSE, TRUE } bool;
 
 #endif
 
+//TODO(denis): dunno if this should be here, also might want this to be more featured
+// and only show up during debug builds
+#define ASSERT(x) ((x) ? x : *(int8*)0 = 0)
+
 #endif
