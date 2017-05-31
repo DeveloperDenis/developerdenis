@@ -2,7 +2,7 @@
 A group of C/C++ files I reuse across many different projects.
 
 ### Denis_Types
-A collection of typedef that I like to use to simplify using 8, 16, 32, or 64 bit variables.
+A collection of typedefs that I like to use to simplify using 8, 16, 32, or 64 bit variables.
 
 ### Denis_Math
 Contains structures like vectors and rectangles and operations that can be performed on them, as well as other commonly needed math operations.
