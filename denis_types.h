@@ -36,7 +36,16 @@ typedef enum { FALSE, TRUE } bool;
 #endif
 
 //TODO(denis): dunno if this should be here, also might want this to be more featured
-// and only show up during debug builds
-#define ASSERT(x) ((x) ? x : *(int8*)0 = 0)
+#if defined(DEBUG)
+#define ASSERT(x)				\
+    if (!(x))					\
+	*(int8*)0 = 0
+#else
+#define ASSERT(x)
+#endif
+
+#define KILOBYTE(num) ((num) * (uint64)1024)
+#define MEGABYTE(num) (KILOBYTE(num) * (uint64)1024)
+#define GIGABYTE(num) (MEGABYTE(num) * (uint64)1024)
 
 #endif
