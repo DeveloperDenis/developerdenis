@@ -21,10 +21,18 @@
 
 #define ABS_VALUE(x) ((x) < 0 ? -(x) : (x))
 
-struct Vector2
+union Vector2
 {
-    int32 x;
-    int32 y;
+	struct
+	{
+		int32 x;
+		int32 y;
+	};
+	struct
+	{
+		int32 w;
+		int32 h;
+	};
 };
 
 static inline Vector2 V2(int32 x, int32 y)
@@ -78,24 +86,30 @@ struct Rectangle
     int32 getWidth() { return max.x - min.x; };
     int32 getHeight() { return max.y - min.y; };
 
+	void moveLeft(int32 amount) { setX(min.x - amount); }
+	void moveRight(int32 amount) { setX(min.x +amount); }
+	//NOTE(denis): assumes that down is positive Y
+	void moveUp(int32 amount) { setY(min.y - amount); }
+	void moveDown(int32 amount) { setY(min.y + amount); }
+	
     void setY(int32 newY)
     {
-	int32 height = max.y - min.y;
-	min.y = newY;
-	max.y = newY + height;
+		int32 height = max.y - min.y;
+		min.y = newY;
+		max.y = newY + height;
     };
 
     void setX(int32 newX)
     {
-	int32 width = max.x - min.x;
-	min.x = newX;
-	max.x = newX + width;
+		int32 width = max.x - min.x;
+		min.x = newX;
+		max.x = newX + width;
     };
 
     void setPos(Vector2 newPos)
     {
-	setY(newPos.y);
-	setX(newPos.x);
+		setY(newPos.y);
+		setX(newPos.x);
     };
 };
 
@@ -119,7 +133,7 @@ static inline Rectangle Rect(Vector2 min, Vector2 max)
 static inline bool pointInRect(Vector2 point, Rectangle rect)
 {
     return point.x > rect.getLeft() && point.x < rect.getRight() &&
-	point.y > rect.getTop() && point.y < rect.getBottom();
+		point.y > rect.getTop() && point.y < rect.getBottom();
 }
 
 #endif

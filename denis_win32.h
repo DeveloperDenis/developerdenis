@@ -11,6 +11,9 @@
 #define HEAP_ALLOC(size) VirtualAlloc(0, size, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE)
 #define HEAP_FREE(pointer) VirtualFree(pointer, 0, MEM_RELEASE);
 
+#include "denis_strings.h"
+
+//NOTE(denis): user must free the returned string
 static char* showFileDialog(char *descriptionOfFile, char *fileExtension, bool requestSave)
 {
     char *result = 0;
@@ -25,7 +28,7 @@ static char* showFileDialog(char *descriptionOfFile, char *fileExtension, bool r
     uint32 stringIndex;
     for (stringIndex = 0; descriptionOfFile[stringIndex] != 0; ++stringIndex)
     {
-	filter[stringIndex] = descriptionOfFile[stringIndex];
+		filter[stringIndex] = descriptionOfFile[stringIndex];
     }
 
     ++stringIndex;
@@ -33,7 +36,7 @@ static char* showFileDialog(char *descriptionOfFile, char *fileExtension, bool r
     filter[stringIndex++] = '.';
     for (uint32 i = 0; fileExtension[i] != 0; ++i)
     {
-	filter[stringIndex++] = fileExtension[i];
+		filter[stringIndex++] = fileExtension[i];
     }
     
     openFileName.lpstrFilter = filter;
@@ -43,25 +46,54 @@ static char* showFileDialog(char *descriptionOfFile, char *fileExtension, bool r
 
     if (requestSave)
     {
-	openFileName.Flags = OFN_OVERWRITEPROMPT;
-	if (GetSaveFileName(&openFileName) != 0)
-	{
-	    result = fileNameBuffer;
-	}
-	else
-	    HEAP_FREE(fileNameBuffer);
+		openFileName.Flags = OFN_OVERWRITEPROMPT;
+		if (GetSaveFileName(&openFileName) != 0)
+		{
+			result = fileNameBuffer;
+		}
+		else
+			HEAP_FREE(fileNameBuffer);
     }
     else
     {
-	openFileName.Flags = OFN_FILEMUSTEXIST;
-	if (GetOpenFileName(&openFileName) != 0)
-	{
-	    result = fileNameBuffer;
-	}
-	else
-	    HEAP_FREE(fileNameBuffer);
+		openFileName.Flags = OFN_FILEMUSTEXIST;
+		if (GetOpenFileName(&openFileName) != 0)
+		{
+			result = fileNameBuffer;
+		}
+		else
+			HEAP_FREE(fileNameBuffer);
     }
     
+    return result;
+}
+
+//NOTE(denis): user must free the returned string
+static char* getProgramPathName()
+{
+    char *result = 0;
+	
+    TCHAR fileNameBuffer[MAX_PATH+1];
+    DWORD getFileNameResult = GetModuleFileName(NULL, fileNameBuffer, MAX_PATH+1);
+    if (getFileNameResult != 0 && GetLastError() != ERROR_INSUFFICIENT_BUFFER)
+    {
+		char filePath[MAX_PATH+1] = {};
+		uint32 indexOfLastSlash = 0;
+		for (int i = 0; i < MAX_PATH && fileNameBuffer[i] != 0; ++i)
+		{
+			if (fileNameBuffer[i] == '\\')
+				indexOfLastSlash = i;
+		}
+ 
+		copyIntoString(filePath, fileNameBuffer, 0, indexOfLastSlash);
+ 
+		result = duplicateString(filePath);
+    }
+    else
+    {
+		//TODO(denis): try again with a bigger buffer?
+    }
+ 
     return result;
 }
 

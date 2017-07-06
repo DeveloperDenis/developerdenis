@@ -35,6 +35,20 @@ typedef enum { FALSE, TRUE } bool;
 
 #endif
 
+ // HEAP_ALLOC & HEAP_FREE
+#if defined(_WIN32)
+ 
+//TODO(denis): do I want to do it this way?
+#include "denis_win32.h"
+ 
+#else
+ 
+#include <stdlib.h>
+#define HEAP_ALLOC(size) malloc(size)
+#define HEAP_FREE(pointer) free(pointer)
+ 
+#endif
+
 //TODO(denis): dunno if this should be here, also might want this to be more featured
 #if defined(DEBUG)
 #define ASSERT(x)				\

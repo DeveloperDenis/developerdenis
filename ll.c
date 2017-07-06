@@ -13,21 +13,20 @@ bool ll_addToFront(Node** list, void* data)
 
     if (list && data)
     {
-	//TODO(denis): HEAP_ALLOC macro?
-	Node* newNode = (Node*) malloc(sizeof(Node));
-	if (newNode)
-	{
-	    newNode->data = data;
+		Node* newNode = (Node*) HEAP_ALLOC(sizeof(Node));
+		if (newNode)
+		{
+			newNode->data = data;
 	
-	    if (!(*list))
-		newNode->next = NULL;
-	    else
-		newNode->next = *list;
+			if (!(*list))
+				newNode->next = NULL;
+			else
+				newNode->next = *list;
 
-	    *list = newNode;
+			*list = newNode;
 
-	    added = TRUE;
-	}
+			added = TRUE;
+		}
     }
     return added;
 }
@@ -38,11 +37,10 @@ void ll_destroy(Node* list)
     
     while (current)
     {
-	Node* next = current->next;
+		Node* next = current->next;
 
-	//TODO(denis): HEAP_FREE macro?
-	free(current->data);
-	free(current);
-	current = next;
+	    HEAP_FREE(current->data);
+		HEAP_FREE(current);
+		current = next;
     }
 }
