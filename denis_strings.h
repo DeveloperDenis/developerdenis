@@ -133,6 +133,7 @@ static char* trimString(char* string)
     return result;
 }
 
+//NOTE(denis): does not include the /0 in the string length
 static inline int getStringSize(char* string)
 {
     int result = 0;
@@ -273,6 +274,58 @@ static char* concatStrings(char *a, char *b)
     }
      
     return result;
+}
+
+//TODO(denis): these functions do not handle negative numbers properly
+static bool toString(int32 num, char* buffer, uint32 maxLength)
+{
+	bool success = false;
+	uint32 length = 0;
+	int32 temp = num;
+	while (temp > 0)
+	{
+		temp /= 10;
+		++length;
+	}
+	
+	if (maxLength > 0 && length > 0 && length <= maxLength)
+	{
+	    temp = num;
+		for (uint32 i = 0; i < length && temp > 0; ++i, temp /= 10)
+		{
+		    buffer[(length - 1) - i] = '0' + (temp % 10);
+		}
+
+		success = true;
+	}
+
+	return success;
+}
+
+static char* toString(int32 num)
+{
+	char* result = 0;
+	uint32 length = 0;
+
+	//TODO(denis): probably not a huge deal, but this is computed twice
+	int32 temp = num;
+	while (temp > 0)
+	{
+		temp /= 10;
+		++length;
+	}
+
+	if (length > 0)
+	{
+		result = (char*)HEAP_ALLOC(length+1);
+		if (!toString(num, result, length))
+		{
+			HEAP_FREE(result);
+			result = 0;
+		}
+	}
+	
+	return result;
 }
 
 #endif

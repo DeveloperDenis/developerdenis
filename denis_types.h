@@ -38,8 +38,19 @@ typedef enum { FALSE, TRUE } bool;
  // HEAP_ALLOC & HEAP_FREE
 #if defined(_WIN32)
  
+#if defined(WINDOWS_UWP_APP)
+
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+#include "windows.h"
+
+#define HEAP_ALLOC(size) HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, size)
+#define HEAP_FREE(ptr) HeapFree(GetProcessHeap(), 0, ptr)
+
+#else
 //TODO(denis): do I want to do it this way?
 #include "denis_win32.h"
+#endif
  
 #else
  
