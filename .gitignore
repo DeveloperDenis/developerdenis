@@ -52,3 +52,4 @@ tests/build.bat~
 tests/test.exe
 *.bat
 tests/test.c
+*.cpp~
