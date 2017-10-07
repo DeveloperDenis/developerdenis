@@ -36,6 +36,7 @@ struct Pen
 	uint32 pressure;
 	uint32 x;
 	uint32 y;
+	bool usingEraser;
 };
 
 struct Input
