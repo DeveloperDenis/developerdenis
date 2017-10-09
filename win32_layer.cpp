@@ -20,6 +20,7 @@ static bool _running = true;
 static HDC _deviceContext;
 static uint32 _windowWidth;
 static uint32 _windowHeight;
+static uint32 _currentTouchPoint;
 
 static BackBuffer _backBuffer;
 static Input _input;
@@ -171,8 +172,34 @@ LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, WPARAM w
 				{
 					case PT_TOUCH:
 					{
-						//TODO(denis): process touch input
-						// GetPointerTouchInfo();
+						//TODO(denis): for now we only process up to five points
+						if (_currentTouchPoint >= 4)
+							break;
+						
+						POINTER_TOUCH_INFO touchInfo = {};
+						GetPointerTouchInfo(pointerID, &touchInfo);
+
+						RECT touchRect = touchInfo.rcContactRaw;
+						POINT touchPoint;
+						if (touchInfo.touchMask & TOUCH_MASK_CONTACTAREA)
+						{
+							touchPoint.x =
+								touchRect.left + (touchRect.right - touchRect.left)/2;
+							touchPoint.y =
+								touchRect.top + (touchRect.bottom - touchRect.top)/2;
+						}
+						else
+						{
+							touchPoint.x = touchRect.left;
+						    touchPoint.y = touchRect.top;
+						}
+
+						ScreenToClient(windowHandle, &touchPoint);
+						_input.touch.points[_currentTouchPoint].x = touchPoint.x;
+						_input.touch.points[_currentTouchPoint].y = touchPoint.y;
+						
+						++_currentTouchPoint;
+						_input.touch.numActivePoints = _currentTouchPoint;
 					} break;
 
 					case PT_PEN:
@@ -225,7 +252,7 @@ LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, WPARAM w
 
 		case WM_POINTERUP:
 		{
-			OutputDebugStringA("***pointer up***\n");
+			//TODO(denis): do something?
 		} break;
 		
 		default:
@@ -370,6 +397,9 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, 
 	    OutputDebugString(timeBuffer);
 #endif
 		lastCounts = currentCounts;
+
+		_currentTouchPoint = 0;
+		_input.touch = {};
     }
 	
     DestroyWindow(windowHandle);

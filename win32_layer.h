@@ -2,6 +2,7 @@
 #define WIN32_LAYER_H_
 
 #include "denis_types.h"
+#include "denis_math.h"
 
 struct Bitmap
 {
@@ -28,7 +29,9 @@ struct Mouse
 
 struct Touch
 {
-	
+	//TODO(denis): eventually make this hold 10 different points?
+	uint32 numActivePoints;
+	Vector2 points[5];
 };
 
 struct Pen
@@ -42,6 +45,7 @@ struct Pen
 struct Input
 {
 	Pen pen;
+	Touch touch;
 };
 
 //TODO(denis): think of a better way to do this
