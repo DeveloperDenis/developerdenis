@@ -6,7 +6,7 @@
 
 struct Bitmap
 {
-	void* pixels;
+    uint32* pixels;
 	uint32 width;
 	uint32 height;
 };
@@ -25,6 +25,8 @@ struct Mouse
 {
 	int32 x;
 	int32 y;
+
+	bool leftButtonPressed;
 };
 
 struct Touch
@@ -46,6 +48,7 @@ struct Input
 {
 	Pen pen;
 	Touch touch;
+	Mouse mouse;
 };
 
 //TODO(denis): think of a better way to do this

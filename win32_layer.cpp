@@ -27,7 +27,6 @@ static Input _input;
 
 //TODO(denis): put these into the Input struct
 static Controller _controller;
-static Mouse _mouse;
 
 FILETIME getFileWriteTime(char* fileName)
 {
@@ -144,19 +143,26 @@ LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, WPARAM w
 
 		case WM_MOUSEMOVE:
 		{
-			//TODO(denis): check if the mouse buttons are down?
-			_mouse.x = GET_X_LPARAM(lParam);
-			_mouse.y = GET_Y_LPARAM(lParam);
+			_input.mouse.x = GET_X_LPARAM(lParam);
+			_input.mouse.y = GET_Y_LPARAM(lParam);
+
+			_input.mouse.leftButtonPressed = (wParam & MK_LBUTTON) != 0;
 		} break;
 
 		case WM_LBUTTONDOWN:
 		{
-			//TODO(denis): do stuff
+			_input.mouse.x = GET_X_LPARAM(lParam);
+			_input.mouse.y = GET_Y_LPARAM(lParam);
+
+			_input.mouse.leftButtonPressed = true;
 		} break;
 
 		case WM_LBUTTONUP:
 		{
-			//TODO(denis): do stuff
+			_input.mouse.x = GET_X_LPARAM(lParam);
+			_input.mouse.y = GET_Y_LPARAM(lParam);
+
+			_input.mouse.leftButtonPressed = false;
 		} break;
 
 		//NOTE(denis): used for touch and pen input
@@ -368,7 +374,7 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, 
 		}
 		
 	    Bitmap screen;
-		screen.pixels = _backBuffer.data;
+		screen.pixels = (uint32*)_backBuffer.data;
 		screen.width = _backBuffer.bitmapInfo.bmiHeader.biWidth;
 		screen.height = ABS_VALUE(_backBuffer.bitmapInfo.bmiHeader.biHeight);
 	    

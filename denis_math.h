@@ -21,6 +21,20 @@
 
 #define ABS_VALUE(x) ((x) < 0 ? -(x) : (x))
 
+union Vector2f
+{
+	struct
+	{
+		real32 x;
+		real32 y;
+	};
+	struct
+	{
+		real32 w;
+		real32 h;
+	};
+};
+
 union Vector2
 {
 	struct
@@ -35,12 +49,24 @@ union Vector2
 	};
 };
 
+static inline Vector2f V2f(real32 x, real32 y)
+{
+	Vector2f result = {x, y};
+	return result;
+}
 static inline Vector2 V2(int32 x, int32 y)
 {
-    Vector2 result = { x, y };
+    Vector2 result = {x, y};
     return result;
 }
 
+Vector2f operator+(Vector2f left, Vector2f right)
+{
+	Vector2f result;
+	result.x = left.x + right.x;
+	result.y = left.y + right.y;
+	return result;
+}
 Vector2 operator+(Vector2 left, Vector2 right)
 {
     Vector2 result;
@@ -49,6 +75,13 @@ Vector2 operator+(Vector2 left, Vector2 right)
     return result;
 }
 
+Vector2f operator-(Vector2f left, Vector2f right)
+{
+	Vector2f result;
+	result.x = left.x - right.x;
+	result.y = left.y - right.y;
+	return result;
+}
 Vector2 operator-(Vector2 left, Vector2 right)
 {
     Vector2 result;
@@ -57,6 +90,13 @@ Vector2 operator-(Vector2 left, Vector2 right)
     return result;
 }
 
+Vector2f operator*(Vector2f left, real32 right)
+{
+	Vector2f result;
+	result.x = left.x * right;
+	result.y = left.y * right;
+	return result;
+}
 Vector2 operator*(Vector2 left, int32 right)
 {
     Vector2 result;
@@ -65,6 +105,13 @@ Vector2 operator*(Vector2 left, int32 right)
     return result;
 }
 
+Vector2f operator/(Vector2f left, real32 right)
+{
+	Vector2f result;
+	result.x = left.x / right;
+	result.y = left.y / right;
+	return result;
+}
 Vector2 operator/(Vector2 left, int32 right)
 {
     Vector2 result;
@@ -134,6 +181,13 @@ static inline bool pointInRect(Vector2 point, Rectangle rect)
 {
     return point.x > rect.getLeft() && point.x < rect.getRight() &&
 		point.y > rect.getTop() && point.y < rect.getBottom();
+}
+
+//TODO(denis): for now this only checks the smallest rect that contains the given circle
+static inline bool pointInCircle(Vector2 point, Vector2 pos, int32 radius)
+{
+	return point.x > pos.x - radius && point.x < pos.x + radius &&
+		point.y > pos.y - radius && point.y < pos.y + radius;
 }
 
 #endif
