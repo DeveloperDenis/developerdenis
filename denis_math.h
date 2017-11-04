@@ -21,6 +21,10 @@
 
 #define ABS_VALUE(x) ((x) < 0 ? -(x) : (x))
 
+#define CLAMP_MIN(value, min) MIN(value, min)
+#define CLAMP_RANGE(value, min, max) ((value) > (min) ? MIN(value, max) : (min))
+#define CLAMP_MAX(value, max) MAX(value, max)
+
 union Vector2f
 {
 	struct

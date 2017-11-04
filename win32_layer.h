@@ -4,9 +4,12 @@
 #include "denis_types.h"
 #include "denis_math.h"
 
+//TODO(denis): this doesn't take into account that the pitch may be different from the width of
+// the image
 struct Bitmap
 {
-    uint32* pixels;
+	uint32* pixels;
+
 	uint32 width;
 	uint32 height;
 };

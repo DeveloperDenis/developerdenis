@@ -60,44 +60,91 @@ static void drawCircle(Bitmap* buffer, int32 x, int32 y, uint32 radius, uint32 c
 
 //TODO(denis): some things need to be fixed/added
 // - add line width parameter
-// - when lines are drawn vertical or close to vertical they nearly disappear
 // - for line widths, need to take into account the slope when deciding how to widen line
 static void drawLine(Bitmap* buffer, Vector2 point1, Vector2 point2, uint32 colour)
 {
-	Vector2 startPoint, endPoint;
+	Vector2 startPoint;
+	Vector2 endPoint;
+	
+	int32 rise = point2.y - point1.y;
+	int32 run = point2.x - point1.x;
 
-	if (point1.x < point2.x)
+	real32 slope;
+	
+	if (ABS_VALUE(rise) > ABS_VALUE(run))
 	{
-		startPoint = point1;
-		endPoint = point2;
+		if (point1.y < point2.y)
+		{
+			startPoint = point1;
+			endPoint = point2;
+		}
+		else
+		{
+			startPoint = point2;
+			endPoint = point1;
+		}
+
+		if (startPoint.y >= (int32)buffer->height || endPoint.y < 0)
+			return;
+
+		uint32 startY = MAX(startPoint.y, 0);
+		uint32 endY = MIN(endPoint.y, (int32)buffer->height);
+
+		rise = endPoint.y - startPoint.y;
+		run = endPoint.x - startPoint.x;
+
+		if (run == 0)
+			slope = 1.0f;
+		else
+			slope = (real32)rise/(real32)run;
+		
+		for (uint32 y = startY; y < endY; ++y)
+		{
+			int32 x;
+			if (slope == 1.0f)
+			{
+			    x = startPoint.x;
+			}
+			else
+			{
+				x = (int32)((real32)(y - startPoint.y)/slope) + startPoint.x;
+			}
+
+			if (x > 0 && x < (int32)buffer->width)
+				*(buffer->pixels + y*buffer->width + x) = colour;
+		}
 	}
 	else
 	{
-		startPoint = point2;
-		endPoint = point1;
-	}
+		if (point1.x < point2.x)
+		{
+			startPoint = point1;
+			endPoint = point2;
+		}
+		else
+		{
+			startPoint = point2;
+			endPoint = point1;
+		}
 
-	//TODO(denis): what if endPoint.x - startPoint.x approaches 0? need to fix
-	real32 slope =
-		((real32)endPoint.y - (real32)startPoint.y)/((real32)endPoint.x - (real32)startPoint.x);
+		if (startPoint.x >= (int32)buffer->width || endPoint.x < 0)
+			return;
 
-	startPoint.x = MAX(startPoint.x, 0);
-	endPoint.x = MIN(endPoint.x, (int32)buffer->width);
-	
-	if (endPoint.x < 0)
-		return;
-	
-	for (int32 x = startPoint.x; x < endPoint.x; ++x)
-	{
-		int32 y = (int32)((x - startPoint.x) * slope);
-		y = startPoint.y + y;
+		uint32 startX = MAX(startPoint.x, 0);
+		uint32 endX = MIN(endPoint.x, (int32)buffer->width);
 
-		if (y < 0 || y > (int32)buffer->height)
-			continue;
+		rise = endPoint.y - startPoint.y;
+		run = endPoint.x - startPoint.x;
 
-		//IMPORTANT TODO(denis): this still occasionally accesses out of bounds memory,
-		//so there must be some sort of problem with the clamping I do
-		*(buffer->pixels + y*buffer->width + x) = colour;
+		slope = (real32)rise/(real32)run;
+		
+		for (uint32 x = startX; x < endX; ++x)
+		{
+			int32 y = (int32)(slope*(x - startPoint.x)) + startPoint.y;
+
+			if (y > 0 && y < (int32)buffer->height)
+				*(buffer->pixels + y*buffer->width + x) = colour;
+		}
 	}
 }
 
