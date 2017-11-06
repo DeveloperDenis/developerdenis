@@ -59,6 +59,8 @@ struct Input
 // - declaration of struct "Memory" that is used to store data between frames
 // - struct "STATIC_SETTINGS" that has members
 //        -> static char* WINDOW_TITLE
+//        -> static uint32 WINDOW_WIDTH
+//        -> static uint32 WINDOW_HEIGHT
 //        -> static char* DLL_FILE_NAME
 //        -> static uint32 FPS_TARGET
 #include "main.h"

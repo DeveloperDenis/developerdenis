@@ -295,8 +295,9 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, 
     HWND windowHandle =
 		CreateWindowEx(0, windowClass.lpszClassName, STATIC_SETTINGS::WINDOW_TITLE,
 					   WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-					   CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, 0, 0,
-					   instance, 0);
+					   CW_USEDEFAULT, CW_USEDEFAULT,
+					   STATIC_SETTINGS::WINDOW_WIDTH, STATIC_SETTINGS::WINDOW_HEIGHT,
+					   0, 0, instance, 0);
 	
     if (!windowHandle)
     {
@@ -353,7 +354,6 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, 
 			{
 				// lastDLLTime is earlier
 				FreeLibrary(mainDLL);
-				//TODO(denis): this part is an exact copy of the above, REFACTOR
 				CopyFile(STATIC_SETTINGS::DLL_FILE_NAME, "running.dll", FALSE);
 				mainDLL = LoadLibraryA("running.dll");
 				mainUpdateCall = (mainUpdateCallPtr)GetProcAddress(mainDLL, "mainUpdateCall");
@@ -388,8 +388,7 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, 
 		real64 timeMs = (real64)timePassed * 1000.0 / (real64)countFrequency.QuadPart;
 
 		//TODO(denis): probably don't do a busy loop
-		//TODO(denis): the epsilon is an attempt to lessen the effects of random spikes
-		// I should look into why the random spikes occur, and if I can prevent them
+		//NOTE(denis): the epsilon is an attempt to lessen the effects of random spikes
 		real32 epsilon = 0.01f;
 		while (timeMs < (real64)1/(real64)STATIC_SETTINGS::FPS_TARGET * 1000.0 - epsilon)
 		{

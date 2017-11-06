@@ -25,20 +25,6 @@
 #define CLAMP_RANGE(value, min, max) ((value) > (min) ? MIN(value, max) : (min))
 #define CLAMP_MAX(value, max) MAX(value, max)
 
-union Vector2f
-{
-	struct
-	{
-		real32 x;
-		real32 y;
-	};
-	struct
-	{
-		real32 w;
-		real32 h;
-	};
-};
-
 union Vector2
 {
 	struct
@@ -53,15 +39,40 @@ union Vector2
 	};
 };
 
+union Vector2f
+{
+	struct
+	{
+		real32 x;
+		real32 y;
+	};
+	struct
+	{
+		real32 w;
+		real32 h;
+	};
+};
+
 static inline Vector2f V2f(real32 x, real32 y)
 {
 	Vector2f result = {x, y};
 	return result;
 }
+static inline Vector2f V2f(Vector2 v2)
+{
+	Vector2f result = {(real32)v2.x, (real32)v2.y};
+	return result;
+}
+
 static inline Vector2 V2(int32 x, int32 y)
 {
     Vector2 result = {x, y};
     return result;
+}
+static inline Vector2 V2(Vector2f v2f)
+{
+	Vector2 result = {(int32)v2f.x, (int32)v2f.y};
+	return result;
 }
 
 Vector2f operator+(Vector2f left, Vector2f right)
@@ -192,6 +203,11 @@ static inline bool pointInCircle(Vector2 point, Vector2 pos, int32 radius)
 {
 	return point.x > pos.x - radius && point.x < pos.x + radius &&
 		point.y > pos.y - radius && point.y < pos.y + radius;
+}
+static inline bool pointInCircle(Vector2f point, Vector2f pos, int32 radius)
+{
+	return point.x > pos.x - radius && point.x < pos.x + radius &&
+		point.y > pos.y - radius && point.y < pos.y + radius;	
 }
 
 #endif
