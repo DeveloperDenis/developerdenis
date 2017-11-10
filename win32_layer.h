@@ -61,6 +61,7 @@ struct Input
 //        -> static char* WINDOW_TITLE
 //        -> static uint32 WINDOW_WIDTH
 //        -> static uint32 WINDOW_HEIGHT
+//        -> static bool WINDOW_RESIZABLE
 //        -> static char* DLL_FILE_NAME
 //        -> static uint32 FPS_TARGET
 #include "main.h"

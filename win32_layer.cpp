@@ -270,33 +270,50 @@ LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, WPARAM w
     return result;
 }
 
-int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, int cmdShow)
+void checkStaticSettings()
 {
-	if (STATIC_SETTINGS::WINDOW_TITLE == 0 || STATIC_SETTINGS::DLL_FILE_NAME == 0 ||
+	if (STATIC_SETTINGS::WINDOW_TITLE == 0 || STATIC_SETTINGS::WINDOW_WIDTH == 0 ||
+		STATIC_SETTINGS::WINDOW_HEIGHT == 0 || STATIC_SETTINGS::DLL_FILE_NAME == 0 ||
 		STATIC_SETTINGS::FPS_TARGET == 0)
 	{
 		ASSERT(!"You must initialize STATIC_SETTINGS struct properly");
 	}
-		
+}
+
+int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, int cmdShow)
+{
+	checkStaticSettings();
+	
     WNDCLASSEX windowClass = {};
     windowClass.cbSize = sizeof(WNDCLASSEX);
     windowClass.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
     windowClass.lpfnWndProc = win32_messageCallback;
     windowClass.hInstance = instance;
     windowClass.hCursor = LoadCursor(0, IDC_ARROW);
-    windowClass.lpszClassName = "TestingWindowsClass";
+    windowClass.lpszClassName = "win32WindowClass";
 	
     if (!RegisterClassEx(&windowClass))
     {
 		OutputDebugString("Error creating window class\n");
 		return 1;
     }
+
+	DWORD windowStyles = WS_OVERLAPPEDWINDOW|WS_VISIBLE;
+	if (!STATIC_SETTINGS::WINDOW_RESIZABLE)
+	{
+		windowStyles = windowStyles ^ (WS_THICKFRAME | WS_MAXIMIZEBOX);
+	}
+
+	RECT windowRect = {0, 0,
+					   (LONG)STATIC_SETTINGS::WINDOW_WIDTH,
+					   (LONG)STATIC_SETTINGS::WINDOW_HEIGHT};
+	AdjustWindowRectEx(&windowRect, WS_OVERLAPPEDWINDOW, FALSE, 0);
 	
     HWND windowHandle =
 		CreateWindowEx(0, windowClass.lpszClassName, STATIC_SETTINGS::WINDOW_TITLE,
-					   WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+					   windowStyles,
 					   CW_USEDEFAULT, CW_USEDEFAULT,
-					   STATIC_SETTINGS::WINDOW_WIDTH, STATIC_SETTINGS::WINDOW_HEIGHT,
+					   windowRect.right - windowRect.left, windowRect.bottom - windowRect.top,
 					   0, 0, instance, 0);
 	
     if (!windowHandle)

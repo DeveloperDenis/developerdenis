@@ -1,7 +1,7 @@
 #if !defined(DENIS_DRAWING_H_)
 #define DENIS_DRAWING_H_
 
-static void fillBuffer(Bitmap* buffer, uint32 colour)
+static inline void fillBuffer(Bitmap* buffer, uint32 colour)
 {
 	for (uint32 row = 0; row < buffer->height; ++row)
 	{
@@ -29,6 +29,10 @@ static void drawRect(Bitmap* buffer,
 			}
 		}
 	}
+}
+static inline void drawRect(Bitmap* buffer, Rect2 rect, uint32 colour)
+{
+	drawRect(buffer, rect.getLeft(), rect.getTop(), rect.getWidth(), rect.getHeight(), colour);
 }
 
 //NOTE(denis): (x, y) is the centre of the circle

@@ -4,6 +4,14 @@
 // NOTE: this will only compile with a C++ compiler
 //----------------------------------------------------
 
+#if defined(UP_POSITIVE_Y)
+#define LOWER_BY -
+#define RAISE_BY +
+#else
+#define LOWER_BY +
+#define RAISE_BY -
+#endif
+
 #ifndef DENIS_MATH_H_
 #define DENIS_MATH_H_
 
@@ -135,68 +143,114 @@ Vector2 operator/(Vector2 left, int32 right)
     return result;
 }
 
-struct Rectangle
+struct Rect2
 {
-    Vector2 min;
-    Vector2 max;
+    Vector2 min; // min is top-left
+    Vector2 max; // max is bottom-right
 
-    int32 getLeft() { return min.x;  };
-    int32 getRight() { return max.x;  };
-    int32 getTop() { return min.y;  };
-    int32 getBottom() { return max.y;  };
+	Rect2(int32 x, int32 y, int32 width, int32 height)
+	{
+		min = {x, y};
+		max = {x + width, y LOWER_BY height};
+	};
+
+    Rect2(Vector2 min, Vector2 max)
+	{
+		this->min = min;
+		this->max = max;
+	};
+	
+    int32 getLeft() { return min.x; };
+    int32 getRight() { return max.x; };
+    int32 getTop() { return min.y; };
+    int32 getBottom() { return max.y; };
 
     int32 getWidth() { return max.x - min.x; };
-    int32 getHeight() { return max.y - min.y; };
+    int32 getHeight() { return ABS_VALUE(max.y - min.y); };
 
 	void moveLeft(int32 amount) { setX(min.x - amount); }
-	void moveRight(int32 amount) { setX(min.x +amount); }
-	//NOTE(denis): assumes that down is positive Y
-	void moveUp(int32 amount) { setY(min.y - amount); }
-	void moveDown(int32 amount) { setY(min.y + amount); }
-	
-    void setY(int32 newY)
-    {
-		int32 height = max.y - min.y;
-		min.y = newY;
-		max.y = newY + height;
-    };
+	void moveRight(int32 amount) { setX(min.x + amount); }
+	void moveUp(int32 amount) { setY(min.y RAISE_BY amount); }
+	void moveDown(int32 amount) { setY(min.y LOWER_BY amount); }
 
-    void setX(int32 newX)
+	void setX(int32 newX)
     {
-		int32 width = max.x - min.x;
+		int32 width = getWidth();
 		min.x = newX;
 		max.x = newX + width;
     };
-
+    void setY(int32 newY)
+    {
+		int32 height = getHeight();
+		min.y = newY;
+		max.y = newY LOWER_BY height;
+    };
+	
     void setPos(Vector2 newPos)
     {
-		setY(newPos.y);
 		setX(newPos.x);
+		setY(newPos.y);
     };
 };
 
-static inline Rectangle Rect(int32 x, int32 y, int32 width, int32 height)
+struct Rect2f
 {
-    Rectangle result;
-    result.min.x = x;
-    result.min.y = y;
-    result.max.x = x + width;
-    result.max.y = y + height;
+	Vector2f min;
+	Vector2f max;
 
-    return result;
-}
+	Rect2f(real32 x, real32 y, real32 width, real32 height)
+	{
+		min = {x, y};
+		max = {x + width, y LOWER_BY height};
+	};
 
-static inline Rectangle Rect(Vector2 min, Vector2 max)
+	Rect2f(Vector2f min, Vector2f max)
+	{
+		this->min = min;
+		this->max = max;
+	};
+	
+	real32 getLeft() { return min.x; };
+	real32 getRight() { return max.x; };
+	real32 getTop() { return min.y; };
+	real32 getBottom() { return max.y; };
+
+	real32 getWidth() { return max.x - min.x; };
+	real32 getHeight() { return ABS_VALUE(max.y - min.y); };
+
+	void setX(real32 newX)
+	{
+		real32 width = getWidth();
+		min.x = newX;
+		max.x = newX + width;
+	};
+	void setY(real32 newY)
+	{
+		real32 height = getHeight();
+		min.y = newY;
+		max.y = newY LOWER_BY height;
+	};
+
+	void setPos(Vector2f newPos)
+	{
+		setX(newPos.x);
+		setY(newPos.y);
+	};
+};
+
+#if defined(UP_POSITIVE_Y)
+static inline bool pointInRect(Vector2 point, Rect2 rect)
 {
-    Rectangle result = {min, max};
-    return result;
+	return point.x > rect.getLeft() && point.x < rect.getRight() &&
+		point.y < rect.getTop() && point.y > rect.getBottom();
 }
-
-static inline bool pointInRect(Vector2 point, Rectangle rect)
+#else
+static inline bool pointInRect(Vector2 point, Rect2 rect)
 {
     return point.x > rect.getLeft() && point.x < rect.getRight() &&
 		point.y > rect.getTop() && point.y < rect.getBottom();
 }
+#endif
 
 //TODO(denis): for now this only checks the smallest rect that contains the given circle
 static inline bool pointInCircle(Vector2 point, Vector2 pos, int32 radius)
