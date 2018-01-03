@@ -48,6 +48,7 @@ union Vector2
 		int32 w;
 		int32 h;
 	};
+	int32 e[2];
 };
 
 union Vector2f
@@ -62,6 +63,7 @@ union Vector2f
 		real32 w;
 		real32 h;
 	};
+	real32 e[2];
 };
 
 static inline Vector2f V2f(real32 x, real32 y)
