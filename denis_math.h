@@ -17,7 +17,8 @@
 
 #include "denis_types.h"
 
-//TODO(denis): remove this eventually?
+//TODO(denis): remove these eventually?
+#define _USE_MATH_DEFINES
 #include "math.h"
 
 #ifndef MIN
@@ -32,6 +33,8 @@
 #define CLAMP_MIN(value, min) MIN(value, min)
 #define CLAMP_RANGE(value, min, max) ((value) > (min) ? MIN(value, max) : (min))
 #define CLAMP_MAX(value, max) MAX(value, max)
+
+#define ARRAY_COUNT(array, type) (sizeof(array)/sizeof(type))
 
 union Vector2
 {

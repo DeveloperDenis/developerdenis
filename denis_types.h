@@ -63,8 +63,12 @@ typedef enum { FALSE, TRUE } bool;
 //TODO(denis): dunno if this should be here, also might want this to be more featured
 #if defined(DEBUG)
 #define ASSERT(x)				\
-    if (!(x))					\
-	*(int8*)0 = 0
+	do							\
+	{							\
+	  if (!(x))					\
+		  *(int8*)0 = 0;		\
+	} while(false)
+
 #else
 #define ASSERT(x)
 #endif

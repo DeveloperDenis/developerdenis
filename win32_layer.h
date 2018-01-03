@@ -14,8 +14,6 @@ struct Bitmap
 	uint32 height;
 };
 
-//TODO(denis): lump Controller, Mouse, Touch input, and Pen input into a single "Input" struct?
-// and we only pass the input struct into the mainUpdateCall?
 struct Controller
 {
 	bool upPressed;
@@ -26,10 +24,15 @@ struct Controller
 
 struct Mouse
 {
-	int32 x;
-	int32 y;
+	Vector2 pos;
+	
+	bool leftPressed;
+	bool leftWasPressed;
+	Vector2 leftClickStartPos;
 
-	bool leftButtonPressed;
+	bool rightPressed;
+	bool rightWasPressed;
+	Vector2 rightClickStartPos;
 };
 
 struct Touch

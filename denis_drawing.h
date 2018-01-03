@@ -65,6 +65,8 @@ static void drawCircle(Bitmap* buffer, int32 x, int32 y, uint32 radius, uint32 c
 //TODO(denis): some things need to be fixed/added
 // - add line width parameter
 // - for line widths, need to take into account the slope when deciding how to widen line
+// - also this is probably overly verbose and inefficient
+// if this is deemed too slow, look into "Bresenham's line algorithm"
 static void drawLine(Bitmap* buffer, Vector2 point1, Vector2 point2, uint32 colour)
 {
 	Vector2 startPoint;

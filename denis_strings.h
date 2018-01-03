@@ -328,4 +328,86 @@ static char* toString(int32 num)
 	return result;
 }
 
+//TODO(denis): make alternative to this?
+#include <cmath>
+
+static real32 parseReal32String(char* string)
+{
+	int32 intPart = 0;
+	int32 realPart = 0;
+	uint32 numDecimalDigits = 0;
+	
+	bool readingDecimalPart = false;
+	bool isNegative = false;
+
+	if (!string)
+		return 0;
+	
+	uint32 i = 0;
+	while (string[i] != 0)
+	{
+		if (string[i] == '-')
+			isNegative = true;
+		else if (string[i] == '.')
+			readingDecimalPart = true;
+		else if (string[i] >= '0' && string[i] <= '9')
+		{
+			if (!readingDecimalPart)
+			{
+				intPart *= 10;
+				intPart += string[i] - '0';
+			}
+			else
+			{
+				realPart *= 10;
+				realPart += string[i] - '0';
+				++numDecimalDigits;
+			}
+		}
+		else
+			break;
+
+		++i;
+	}
+
+	real32 result = 0.0f;
+	result += intPart;
+	result += (real32)realPart/pow(10.0f, (real32)numDecimalDigits);
+
+	if (isNegative)
+		result = -result;
+	
+	return result;
+}
+
+static int32 parseInt32String(char* string)
+{
+	int32 result = 0;
+	bool isNegative = false;
+
+	if (!string)
+		return result;
+	
+	uint32 i = 0;
+	while (string[i] != 0)
+	{
+		if (string[i] == '-')
+			isNegative = true;
+		else if (string[i] >= '0' && string[i] <= '9')
+		{
+			result *= 10;
+			result += string[i] - '0';
+		}
+		else
+			break;
+
+		++i;
+	}
+
+	if (isNegative)
+		result = -result;
+	
+	return result;
+}
+
 #endif

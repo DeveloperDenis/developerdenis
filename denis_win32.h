@@ -7,6 +7,8 @@
 #define Rectangle _Rectangle
 #include <windows.h>
 #undef Rectangle
+#undef near
+#undef far
 
 #define HEAP_ALLOC(size) VirtualAlloc(0, size, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE)
 #define HEAP_FREE(pointer) VirtualFree(pointer, 0, MEM_RELEASE);

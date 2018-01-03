@@ -6,7 +6,6 @@
 
 #include "Strsafe.h"
 #include "Windowsx.h"
-#include "ShellScalingAPI.h"
 
 typedef MAIN_UPDATE_CALL(*mainUpdateCallPtr);
 
@@ -143,28 +142,48 @@ LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, WPARAM w
 
 		case WM_MOUSEMOVE:
 		{
-			_input.mouse.x = GET_X_LPARAM(lParam);
-			_input.mouse.y = GET_Y_LPARAM(lParam);
-
-			_input.mouse.leftButtonPressed = (wParam & MK_LBUTTON) != 0;
+			Vector2 mousePos = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+			_input.mouse.pos = mousePos;
 		} break;
 
 		case WM_LBUTTONDOWN:
 		{
-			_input.mouse.x = GET_X_LPARAM(lParam);
-			_input.mouse.y = GET_Y_LPARAM(lParam);
+			Vector2 mousePos = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+			_input.mouse.pos = mousePos;
+			_input.mouse.leftClickStartPos = mousePos;
 
-			_input.mouse.leftButtonPressed = true;
+			_input.mouse.leftWasPressed = false;
+			_input.mouse.leftPressed = true;
 		} break;
 
 		case WM_LBUTTONUP:
 		{
-			_input.mouse.x = GET_X_LPARAM(lParam);
-			_input.mouse.y = GET_Y_LPARAM(lParam);
+			Vector2 mousePos = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+			_input.mouse.pos = mousePos;
 
-			_input.mouse.leftButtonPressed = false;
+			_input.mouse.leftWasPressed = true;
+			_input.mouse.leftPressed = false;
 		} break;
 
+		case WM_RBUTTONDOWN:
+		{
+			Vector2 mousePos = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+			_input.mouse.pos = mousePos;
+			_input.mouse.rightClickStartPos = mousePos;
+
+			_input.mouse.rightWasPressed = false;
+			_input.mouse.rightPressed = true;
+		} break;
+
+		case WM_RBUTTONUP:
+		{
+			Vector2 mousePos = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+			_input.mouse.pos = mousePos;
+
+			_input.mouse.rightWasPressed = true;
+			_input.mouse.rightPressed = false;
+		} break;
+		
 		//NOTE(denis): used for touch and pen input
 		
 		case WM_POINTERUPDATE:
@@ -343,7 +362,7 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, 
 		return 1;
     }
 
-    FILETIME lastDLLTime = getFileWriteTime(STATIC_SETTINGS::DLL_FILE_NAME);
+    FILETIME lastDLLTime = getFileWriteTime((char*)STATIC_SETTINGS::DLL_FILE_NAME);
 
 	//TODO(denis): should probably let the user set the size of this
     void* mainMemory = VirtualAlloc(0, GIGABYTE(1), MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE);
@@ -356,10 +375,14 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, 
 
 	//TODO(denis): might want to do this eventually
 	//SetProcessDpiAwareness(PROCESS_SYSTEM_DPI_AWARE);
+
+	Mouse oldMouse = {};
+	_input.mouse.leftClickStartPos = V2(-1, -1);
+	_input.mouse.rightClickStartPos = V2(-1, -1);
 	
     while (_running)
     {
-		FILETIME currentWriteTime = getFileWriteTime(STATIC_SETTINGS::DLL_FILE_NAME);
+		FILETIME currentWriteTime = getFileWriteTime((char*)STATIC_SETTINGS::DLL_FILE_NAME);
 		if (CompareFileTime(&lastDLLTime, &currentWriteTime) == -1)
 		{
 			//NOTE(denis): the lock is used to prevent DLL reloading before the PDB file
@@ -422,7 +445,26 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, 
 
 		_currentTouchPoint = 0;
 		_input.touch = {};
-    }
+
+		//TODO(denis): this only gives programs one frame to handle mouse clicks
+		// is that enough? It seems like it should be fine, but maybe it would be safer with
+		// more than one frame? But then users would need to add tests to avoid multiple clicks
+		// registering in a program
+		bool disableLeftWasPressed = _input.mouse.leftWasPressed && oldMouse.leftPressed;
+		bool disableRightWasPressed = _input.mouse.rightWasPressed && oldMouse.rightPressed;
+
+		oldMouse = _input.mouse;
+		if (disableLeftWasPressed)
+		{
+			_input.mouse.leftWasPressed = false;
+			_input.mouse.leftClickStartPos = V2(-1, -1);
+		}
+		if (disableRightWasPressed)
+		{
+			_input.mouse.rightWasPressed = false;
+			_input.mouse.rightClickStartPos = V2(-1, -1);
+		}
+	}
 	
     DestroyWindow(windowHandle);
 	
