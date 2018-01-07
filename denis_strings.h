@@ -1,8 +1,3 @@
-//----------------------------------------------------
-//    denis_strings.h
-// Written by Denis Levesque
-//----------------------------------------------------
-
 #ifndef DENIS_STRINGS_H_
 #define DENIS_STRINGS_H_
 

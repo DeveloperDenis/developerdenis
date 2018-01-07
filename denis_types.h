@@ -1,8 +1,3 @@
-//----------------------------------------------------
-//    denis_types.h
-// Written by Denis Levesque
-//----------------------------------------------------
-
 #ifndef DENIS_TYPES_H_
 #define DENIS_TYPES_H_
 
