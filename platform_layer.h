@@ -71,7 +71,11 @@ struct Input
 //        -> static bool WINDOW_RESIZABLE
 //        -> static char* DLL_FILE_NAME
 //        -> static uint32 FPS_TARGET
+#if defined(DENIS_WIN32)
+#include "main.h"
+#elif defined(DENIS_LINUX)
 #include "../code/main.h"
+#endif
 
 #define exportDLL extern "C" __declspec(dllexport)
 #define MAIN_UPDATE_CALL(name) void (name)(Memory* memory, Bitmap* screen, Input* input)
