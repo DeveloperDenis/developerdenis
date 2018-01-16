@@ -67,6 +67,14 @@ static void drawCircle(Bitmap* buffer, int32 x, int32 y, int32 radius, uint32 co
     }
 }
 
+static inline void drawPoint(Bitmap* buffer, int32 x, int32 y, uint32 colour)
+{
+	if (x < 0 || x >= (int32)buffer->width || y < 0 || y >= (int32)buffer->height)
+		return;
+
+	*(buffer->pixels + y*buffer->width + x) = colour;
+}
+
 //TODO(denis): some things need to be fixed/added
 // - add line width parameter
 // - for line widths, need to take into account the slope when deciding how to widen line
