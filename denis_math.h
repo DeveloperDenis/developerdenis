@@ -86,7 +86,7 @@ union Vector3
 	struct
 	{
 		Vector2 xy;
-		int32 z;
+		int32 filler;
 	};
 	int32 e[3];
 
