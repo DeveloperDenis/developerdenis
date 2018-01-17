@@ -77,7 +77,12 @@ struct Input
 #include "../code/main.h"
 #endif
 
+#if defined(DENIS_WIN32)
 #define exportDLL extern "C" __declspec(dllexport)
+#elif defined(DENIS_LINUX)
+#define exportDLL
+#endif
+
 #define MAIN_UPDATE_CALL(name) void (name)(Memory* memory, Bitmap* screen, Input* input)
 
 #endif

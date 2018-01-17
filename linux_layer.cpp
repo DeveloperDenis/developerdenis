@@ -51,12 +51,13 @@ int main(int argc, char** argv)
 
     XSetWindowAttributes windowAttributes = {};
     //TODO(denis): need to add more here as I add more event processing
-    windowAttributes.event_mask = StructureNotifyMask|ButtonPressMask|KeyPressMask|KeyReleaseMask;
+    windowAttributes.event_mask =
+	StructureNotifyMask|ButtonPressMask|KeyPressMask|KeyReleaseMask|PointerMotionMask|ButtonPressMask|ButtonReleaseMask;
     windowAttributes.colormap = XCreateColormap(display, rootWindow, visualInfo.visual, AllocNone);
 
     unsigned long attributeMask = CWBackPixel|CWColormap|CWEventMask;
 
-    Window window = XCreateWindow(display, rootWindow, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, 0,
+    Window window = XCreateWindow(display, rootWindow, 0, 0, STATIC_SETTINGS::WINDOW_WIDTH, STATIC_SETTINGS::WINDOW_HEIGHT, 0,
 				  visualInfo.depth, InputOutput, visualInfo.visual, attributeMask, &windowAttributes);
     if (!window)
     {
@@ -66,8 +67,8 @@ int main(int argc, char** argv)
 
     //TODO(denis): this doesn't seem to do anything?
     XSizeHints sizeHints = {};
-    sizeHints.min_width = WINDOW_WIDTH;
-    sizeHints.min_height = WINDOW_HEIGHT;
+    sizeHints.min_width = STATIC_SETTINGS::WINDOW_WIDTH;
+    sizeHints.min_height = STATIC_SETTINGS::WINDOW_HEIGHT;
     XSetWMNormalHints(display, window, &sizeHints);
     
     XStoreName(display, window, WINDOW_TITLE);
@@ -77,22 +78,25 @@ int main(int argc, char** argv)
 
     int32 pixelBits = 32;
     uint32 pixelBytes = pixelBits/8;
-    uint32 backBufferSize = WINDOW_WIDTH*WINDOW_HEIGHT*pixelBytes;
+    uint32 backBufferSize = STATIC_SETTINGS::WINDOW_WIDTH*STATIC_SETTINGS::WINDOW_HEIGHT*pixelBytes;
     uint32* pixels = (uint32*)malloc(backBufferSize);
     
     XImage* backBuffer = XCreateImage(display, visualInfo.visual, visualInfo.depth, ZPixmap, 0, (char*)pixels,
-				      WINDOW_WIDTH, WINDOW_HEIGHT, pixelBits, 0);
+				      STATIC_SETTINGS::WINDOW_WIDTH, STATIC_SETTINGS::WINDOW_HEIGHT, pixelBits, 0);
 
     GC graphicsContext = DefaultGC(display, screenNum);
 
     Bitmap screenBitmap = {};
     screenBitmap.pixels = pixels;
-    screenBitmap.width = WINDOW_WIDTH;
-    screenBitmap.height = WINDOW_HEIGHT;
+    screenBitmap.width = STATIC_SETTINGS::WINDOW_WIDTH;
+    screenBitmap.height = STATIC_SETTINGS::WINDOW_HEIGHT;
 
     void* memory = calloc(GIGABYTE(1), 1);
 
     Input input = {};
+    input.mouse.leftClickStartPos = V2(-1, -1);
+    input.mouse.rightClickStartPos = V2(-1, -1);
+    Mouse oldMouse = {};
 
     timespec clockTime;
     //TODO(denis): can use CLOCK_REALTIME instead?
@@ -172,6 +176,44 @@ int main(int argc, char** argv)
 		    }
 		} break;
 
+		case ButtonPress:
+		{
+		    if (event.xbutton.button == Button1)
+		    {
+			input.mouse.leftPressed = true;
+			input.mouse.leftWasPressed = false;
+			input.mouse.leftClickStartPos = V2(event.xbutton.x, event.xbutton.y);
+		    }
+		    else if (event.xbutton.button == Button3)
+		    {
+			input.mouse.rightPressed = true;
+			input.mouse.rightWasPressed = false;
+			input.mouse.rightClickStartPos = V2(event.xbutton.x, event.xbutton.y);
+		    }
+		} break;
+
+		case ButtonRelease:
+		{
+		    if (event.xbutton.button == Button1)
+		    {
+			input.mouse.leftPressed = false;
+			input.mouse.leftWasPressed = true;
+		    }
+		    else if (event.xbutton.button == Button3)
+		    {
+			input.mouse.rightPressed = false;
+			input.mouse.rightWasPressed = true;
+		    }
+		} break;
+
+		case MotionNotify:
+		{
+		    input.mouse.pos.x = event.xmotion.x;
+		    input.mouse.pos.y = event.xmotion.y;
+
+		    //TODO(denis): do I want to look at event.xmotion.state?
+		} break;
+
 		case DestroyNotify:
 		{
 		    XDestroyWindowEvent* e = (XDestroyWindowEvent*)&event;
@@ -183,9 +225,26 @@ int main(int argc, char** argv)
 
 	mainUpdateCall((Memory*)memory, &screenBitmap, &input);
 	
-	XPutImage(display, window, graphicsContext, backBuffer, 0, 0, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+	XPutImage(display, window, graphicsContext, backBuffer, 0, 0,
+		  0, 0, STATIC_SETTINGS::WINDOW_WIDTH, STATIC_SETTINGS::WINDOW_HEIGHT);
 	//TODO(denis): might need to do XFlush(display); here every frame to be sure?
 
+	//TODO(denis): only allows programs to respond to a mouse click that just ended for one frame
+	bool disableLeftWasPressed = oldMouse.leftPressed && input.mouse.leftWasPressed;
+	bool disableRightWasPressed = oldMouse.rightPressed && input.mouse.rightWasPressed;
+
+	oldMouse = input.mouse;
+	if (disableLeftWasPressed)
+	{
+	    input.mouse.leftWasPressed = false;
+	    input.mouse.leftClickStartPos = V2(-1, -1);
+	}
+	else if (disableRightWasPressed)
+	{
+	    input.mouse.rightWasPressed = false;
+	    input.mouse.rightClickStartPos = V2(-1, -1);
+	}
+	
 	timespec endTime;
 	long nanoDiff = getElapsedTimeNs(&clockTime, &endTime);
 
