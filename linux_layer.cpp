@@ -57,6 +57,7 @@ int main(int argc, char** argv)
 
     unsigned long attributeMask = CWBackPixel|CWColormap|CWEventMask;
 
+    //TODO(denis): WINDOW_HEIGHT includes the top border, I want a way to set the client area
     Window window = XCreateWindow(display, rootWindow, 0, 0, STATIC_SETTINGS::WINDOW_WIDTH, STATIC_SETTINGS::WINDOW_HEIGHT, 0,
 				  visualInfo.depth, InputOutput, visualInfo.visual, attributeMask, &windowAttributes);
     if (!window)

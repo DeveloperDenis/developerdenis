@@ -61,6 +61,8 @@ struct Input
     Controller controller;
 };
 
+#define MAIN_UPDATE_CALL(name) void (name)(Memory* memory, Bitmap* screen, Input* input)
+
 //TODO(denis): think of a better way to do this
 //NOTE: user of this header must provide a main.h file that contains the following:
 // - declaration of struct "Memory" that is used to store data between frames
@@ -72,17 +74,16 @@ struct Input
 //        -> static char* DLL_FILE_NAME
 //        -> static uint32 FPS_TARGET
 #if defined(DENIS_WIN32)
+
 #include "main.h"
-#elif defined(DENIS_LINUX)
-#include "../code/main.h"
-#endif
-
-#if defined(DENIS_WIN32)
 #define exportDLL extern "C" __declspec(dllexport)
-#elif defined(DENIS_LINUX)
-#define exportDLL
-#endif
 
-#define MAIN_UPDATE_CALL(name) void (name)(Memory* memory, Bitmap* screen, Input* input)
+#elif defined(DENIS_LINUX)
+
+#include "../code/main.h"
+#define exportDLL
+#include "linux_layer.cpp"
+
+#endif
 
 #endif
