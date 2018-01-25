@@ -57,7 +57,6 @@ int main(int argc, char** argv)
 
     unsigned long attributeMask = CWBackPixel|CWColormap|CWEventMask;
 
-    //TODO(denis): WINDOW_HEIGHT includes the top border, I want a way to set the client area
     Window window = XCreateWindow(display, rootWindow, 0, 0, STATIC_SETTINGS::WINDOW_WIDTH, STATIC_SETTINGS::WINDOW_HEIGHT, 0,
 				  visualInfo.depth, InputOutput, visualInfo.visual, attributeMask, &windowAttributes);
     if (!window)
@@ -65,12 +64,14 @@ int main(int argc, char** argv)
 	printf("Error creating window\n");
 	exit(1);
     }
-
+    
+#if 0
     //TODO(denis): this doesn't seem to do anything?
     XSizeHints sizeHints = {};
     sizeHints.min_width = STATIC_SETTINGS::WINDOW_WIDTH;
     sizeHints.min_height = STATIC_SETTINGS::WINDOW_HEIGHT;
     XSetWMNormalHints(display, window, &sizeHints);
+#endif
     
     XStoreName(display, window, WINDOW_TITLE);
     XMapRaised(display, window);
