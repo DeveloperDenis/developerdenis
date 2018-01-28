@@ -1,5 +1,5 @@
 //----------------------------------------------------
-//    denis_math.h
+//	  denis_math.h
 // Written by Denis Levesque
 // NOTE: this will only compile with a C++ compiler
 //----------------------------------------------------
@@ -76,32 +76,32 @@ static inline Vector4f cross(Vector4f v1, Vector4f v2);
 
 union Vector2
 {
-    struct
-    {
+	struct
+	{
 		int32 x;
 		int32 y;
-    };
-    struct
-    {
+	};
+	struct
+	{
 		int32 w;
 		int32 h;
-    };
-    int32 e[2];
+	};
+	int32 e[2];
 };
 
 union Vector2f
 {
-    struct
-    {
+	struct
+	{
 		real32 x;
 		real32 y;
-    };
-    struct
-    {
+	};
+	struct
+	{
 		real32 w;
 		real32 h;
-    };
-    real32 e[2];
+	};
+	real32 e[2];
 };
 
 union Vector3
@@ -171,7 +171,7 @@ union Vector4f
 
 struct Matrix4f
 {
-    real32 elements[4][4];
+	real32 elements[4][4];
 
 	Vector3f currentScale;
 
@@ -211,49 +211,49 @@ struct Matrix4f
 // Rectangle types
 struct Rect2
 {
-    Vector2 min; // min is top-left
-    Vector2 max; // max is bottom-right
+	Vector2 min; // min is top-left
+	Vector2 max; // max is bottom-right
 
-    Rect2(int32 x, int32 y, int32 width, int32 height);
-    Rect2(Vector2 min, Vector2 max);
+	Rect2(int32 x, int32 y, int32 width, int32 height);
+	Rect2(Vector2 min, Vector2 max);
 	
-    int32 getLeft() { return min.x; };
-    int32 getRight() { return max.x; };
-    int32 getTop() { return min.y; };
-    int32 getBottom() { return max.y; };
+	int32 getLeft() { return min.x; };
+	int32 getRight() { return max.x; };
+	int32 getTop() { return min.y; };
+	int32 getBottom() { return max.y; };
 
-    int32 getWidth() { return max.x - min.x; };
-    int32 getHeight() { return ABS_VALUE(max.y - min.y); };
+	int32 getWidth() { return max.x - min.x; };
+	int32 getHeight() { return ABS_VALUE(max.y - min.y); };
 
-    void moveLeft(int32 amount) { setX(min.x - amount); }
-    void moveRight(int32 amount) { setX(min.x + amount); }
-    void moveUp(int32 amount) { setY(min.y RAISE_BY amount); }
-    void moveDown(int32 amount) { setY(min.y LOWER_BY amount); }
+	void moveLeft(int32 amount) { setX(min.x - amount); }
+	void moveRight(int32 amount) { setX(min.x + amount); }
+	void moveUp(int32 amount) { setY(min.y RAISE_BY amount); }
+	void moveDown(int32 amount) { setY(min.y LOWER_BY amount); }
 
-    void setX(int32 newX);
-    void setY(int32 newY);
-    void setPos(Vector2 newPos);
+	void setX(int32 newX);
+	void setY(int32 newY);
+	void setPos(Vector2 newPos);
 };
 
 struct Rect2f
 {
-    Vector2f min;
-    Vector2f max;
+	Vector2f min;
+	Vector2f max;
 
-    Rect2f(real32 x, real32 y, real32 width, real32 height);
-    Rect2f(Vector2f min, Vector2f max);
+	Rect2f(real32 x, real32 y, real32 width, real32 height);
+	Rect2f(Vector2f min, Vector2f max);
 	
-    real32 getLeft() { return min.x; };
-    real32 getRight() { return max.x; };
-    real32 getTop() { return min.y; };
-    real32 getBottom() { return max.y; };
+	real32 getLeft() { return min.x; };
+	real32 getRight() { return max.x; };
+	real32 getTop() { return min.y; };
+	real32 getBottom() { return max.y; };
 
-    real32 getWidth() { return max.x - min.x; };
-    real32 getHeight() { return ABS_VALUE(max.y - min.y); };
+	real32 getWidth() { return max.x - min.x; };
+	real32 getHeight() { return ABS_VALUE(max.y - min.y); };
 
-    void setX(real32 newX);
-    void setY(real32 newY);
-    void setPos(Vector2f newPos);
+	void setX(real32 newX);
+	void setY(real32 newY);
+	void setPos(Vector2f newPos);
 };
 
 //---------------------------------------------------------------------------
@@ -261,8 +261,8 @@ struct Rect2f
 
 static inline Vector2 V2(int32 x, int32 y)
 {
-    Vector2 result = {x, y};
-    return result;
+	Vector2 result = {x, y};
+	return result;
 }
 static inline Vector2 V2(Vector2f v2f)
 {
@@ -272,13 +272,13 @@ static inline Vector2 V2(Vector2f v2f)
 
 static inline Vector2f V2f(real32 x, real32 y)
 {
-    Vector2f result = {x, y};
-    return result;
+	Vector2f result = {x, y};
+	return result;
 }
 static inline Vector2f V2f(Vector2 v2)
 {
-    Vector2f result = {(real32)v2.x, (real32)v2.y};
-    return result;
+	Vector2f result = {(real32)v2.x, (real32)v2.y};
+	return result;
 }
 
 static inline Vector3 V3(int32 x, int32 y, int32 z)
@@ -315,31 +315,31 @@ static inline Vector4f V4f(Vector3f v, real32 w)
 
 Vector2 operator+(Vector2 left, Vector2 right)
 {
-    Vector2 result;
-    result.x = left.x + right.x;
-    result.y = left.y + right.y;
-    return result;
+	Vector2 result;
+	result.x = left.x + right.x;
+	result.y = left.y + right.y;
+	return result;
 }
 Vector2 operator-(Vector2 left, Vector2 right)
 {
-    Vector2 result;
-    result.x = left.x - right.x;
-    result.y = left.y - right.y;
-    return result;
+	Vector2 result;
+	result.x = left.x - right.x;
+	result.y = left.y - right.y;
+	return result;
 }
 Vector2 operator*(Vector2 left, int32 right)
 {
-    Vector2 result;
-    result.x = left.x * right;
-    result.y = left.y * right;
-    return result;
+	Vector2 result;
+	result.x = left.x * right;
+	result.y = left.y * right;
+	return result;
 }
 Vector2 operator/(Vector2 left, int32 right)
 {
-    Vector2 result;
-    result.x = left.x / right;
-    result.y = left.y / right;
-    return result;
+	Vector2 result;
+	result.x = left.x / right;
+	result.y = left.y / right;
+	return result;
 }
 
 Vector2f operator+(Vector2f left, Vector2f right)
@@ -351,10 +351,10 @@ Vector2f operator+(Vector2f left, Vector2f right)
 }
 Vector2f operator-(Vector2f left, Vector2f right)
 {
-    Vector2f result;
-    result.x = left.x - right.x;
-    result.y = left.y - right.y;
-    return result;
+	Vector2f result;
+	result.x = left.x - right.x;
+	result.y = left.y - right.y;
+	return result;
 }
 Vector2f operator*(Vector2f left, real32 right)
 {
