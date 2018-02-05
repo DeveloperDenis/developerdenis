@@ -67,6 +67,7 @@ static inline Vector3f normalize(Vector3f vector);
 
 static inline real32 dot(Vector3f v1, Vector3f v2);
 
+static inline Vector3 cross(Vector3 v1, Vector3 v2);
 static inline Vector3f cross(Vector3f v1, Vector3f v2);
 static inline Vector4f cross(Vector4f v1, Vector4f v2);
 
@@ -284,6 +285,11 @@ static inline Vector2f V2f(Vector2 v2)
 static inline Vector3 V3(int32 x, int32 y, int32 z)
 {
 	Vector3 result = {x, y, z};
+	return result;
+}
+static inline Vector3 V3(Vector2 v, int32 z)
+{
+	Vector3 result = {v.x, v.y, z};
 	return result;
 }
 
@@ -798,6 +804,16 @@ static inline Vector3f normalize(Vector3f vector)
 	return result;
 }
 
+static inline Vector3 cross(Vector3 v1, Vector3 v2)
+{
+	Vector3 result;
+
+	result.x = v1.y*v2.z - v1.z*v2.y;
+	result.y = v1.z*v2.x - v1.x*v2.z;
+	result.z = v1.x*v2.y - v1.y*v2.x;
+
+	return result;
+}
 static inline Vector3f cross(Vector3f v1, Vector3f v2)
 {
 	Vector3f result;
