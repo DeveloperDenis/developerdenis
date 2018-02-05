@@ -66,6 +66,10 @@ static void drawCircle(Bitmap* buffer, int32 x, int32 y, int32 radius, uint32 co
 	}
     }
 }
+static inline void drawCircle(Bitmap* buffer, Vector2 pos, int32 radius, uint32 colour)
+{
+	drawCircle(buffer, pos.x, pos.y, radius, colour);
+}
 
 static inline void drawPoint(Bitmap* buffer, int32 x, int32 y, uint32 colour)
 {
