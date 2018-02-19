@@ -61,6 +61,9 @@ struct Input
     Controller controller;
 };
 
+//NOTE(denis): this must be defined by the user program
+struct Memory;
+
 #define MAIN_UPDATE_CALL(name) void (name)(Memory* memory, Bitmap* screen, Input* input)
 
 //TODO(denis): think of a better way to do this

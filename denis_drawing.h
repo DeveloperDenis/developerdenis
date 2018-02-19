@@ -3,6 +3,39 @@
 
 #include "denis_math.h"
 
+//NOTE(denis): draws the bitmap onto the buffer with x and y specified in rect
+// clips bitmap width and height to rect width & rect height
+//TODO(denis): doesn't draw partial alpha, only full or none
+static void drawBitmap(Bitmap* buffer, Bitmap* bitmap, Rect2 rect)
+{
+	int32 startY = MAX(rect.getTop(), 0);
+	int32 endY = MIN(rect.getBottom(), (int32)buffer->height);
+
+	int32 startX = MAX(rect.getLeft(), 0);
+	int32 endX = MIN(rect.getRight(), (int32)buffer->width);
+
+	uint32 row = 0;
+	for (int32 y = startY; y < endY && row < bitmap->height; ++y, ++row)
+	{
+		uint32 col = 0;
+		for (int32 x = startX; x < endX && col < bitmap->width; ++x, ++col)
+		{
+			uint32* inPixel = bitmap->pixels + row*bitmap->width + col;
+			uint32* outPixel = buffer->pixels + y*buffer->width + x;
+
+			if (((*inPixel) & (0xFF << 24)) != 0)
+			{
+				*outPixel = *inPixel;
+			}
+		}
+	}
+}
+static inline void drawBitmap(Bitmap* buffer, Bitmap* bitmap, Vector2 pos)
+{
+	Rect2 rect = Rect2(pos.x, pos.y, bitmap->width, bitmap->height);
+	drawBitmap(buffer, bitmap, rect);
+}
+
 static inline void fillBuffer(Bitmap* buffer, uint32 colour)
 {
     for (uint32 row = 0; row < buffer->height; ++row)

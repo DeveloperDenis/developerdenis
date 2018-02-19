@@ -215,6 +215,7 @@ struct Rect2
 	Vector2 min; // min is top-left
 	Vector2 max; // max is bottom-right
 
+	Rect2();
 	Rect2(int32 x, int32 y, int32 width, int32 height);
 	Rect2(Vector2 min, Vector2 max);
 	
@@ -241,6 +242,7 @@ struct Rect2f
 	Vector2f min;
 	Vector2f max;
 
+	Rect2f();
 	Rect2f(real32 x, real32 y, real32 width, real32 height);
 	Rect2f(Vector2f min, Vector2f max);
 	
@@ -687,6 +689,11 @@ void Matrix4f::rotate(real32 xAngle, real32 yAngle, real32 zAngle)
 //--------------------------------------------------------------------------
 // Rectangle Member Functions
 
+Rect2::Rect2()
+{
+	min = V2(0,0);
+	max = V2(0,0);
+}
 Rect2::Rect2(int32 x, int32 y, int32 width, int32 height)
 {
 	min = V2(x, y);
@@ -717,6 +724,11 @@ void Rect2::setPos(Vector2 newPos)
 }
 
 
+Rect2f::Rect2f()
+{
+	min = V2f(0.0f, 0.0f);
+	max = V2f(0.0f, 0.0f);
+}
 Rect2f::Rect2f(real32 x, real32 y, real32 width, real32 height)
 {
 	min = V2f(x, y);
