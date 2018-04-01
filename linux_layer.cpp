@@ -12,8 +12,11 @@
 #include "platform_layer.h"
 #include "denis_drawing.h"
 
-typedef MAIN_UPDATE_CALL(*mainUpdateCallPtr);
-extern MAIN_UPDATE_CALL(mainUpdateCall);
+typedef APP_INIT_CALL(*appInitCallPtr);
+extern APP_INIT_CALL(appInit);
+
+typedef APP_UPDATE_CALL(*appUpdateCallPtr);
+extern APP_UPDATE_CALL(appUpdate);
 
 //NOTE(denis): this only cares about nano second differences, and it assumes that the differences in nano seconds between two
 // times will be small (less than 1 second)
@@ -103,7 +106,9 @@ int main(int argc, char** argv)
     //TODO(denis): can use CLOCK_REALTIME instead?
     //NOTE(denis): CLOCK_REALTIME is affected by the user manually changing the system time
     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &clockTime);
-    
+
+	appInit((Memory*)memory, &screenBitmap);
+	
     bool running = true;
     while(running)
     {
@@ -224,7 +229,7 @@ int main(int argc, char** argv)
 			}
 		}
 
-		mainUpdateCall((Memory*)memory, &screenBitmap, &input);
+		appUpdate((Memory*)memory, &screenBitmap, &input);
 	
 		XPutImage(display, window, graphicsContext, backBuffer, 0, 0,
 				  0, 0, STATIC_SETTINGS::WINDOW_WIDTH, STATIC_SETTINGS::WINDOW_HEIGHT);

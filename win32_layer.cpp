@@ -1,13 +1,21 @@
-#include "denis_win32.h"
-#include "denis_types.h"
-#include "denis_math.h"
-
-#include "platform_layer.h"
+#define NOMINMAX
+#define Rectangle _Rectangle
+#include <windows.h>
+#undef Rectangle
+#undef near
+#undef far
 
 #include "Strsafe.h"
 #include "Windowsx.h"
 
-typedef MAIN_UPDATE_CALL(*mainUpdateCallPtr);
+#include "denis_types.h"
+#include "denis_math.h"
+#include "denis_win32.h"
+
+#include "platform_layer.h"
+
+typedef APP_INIT_CALL(*appInitCallPtr);
+typedef APP_UPDATE_CALL(*appUpdateCallPtr);
 
 struct BackBuffer
 {
@@ -17,9 +25,9 @@ struct BackBuffer
 
 static bool _running = true;
 static HDC _deviceContext;
-static uint32 _windowWidth;
-static uint32 _windowHeight;
-static uint32 _currentTouchPoint;
+static u32 _windowWidth;
+static u32 _windowHeight;
+static u32 _currentTouchPoint;
 
 static BackBuffer _backBuffer;
 static Input _input;
@@ -149,13 +157,13 @@ LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, WPARAM w
 
 		case WM_MOUSEMOVE:
 		{
-			Vector2 mousePos = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+			v2 mousePos = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
 			_input.mouse.pos = mousePos;
 		} break;
 
 		case WM_LBUTTONDOWN:
 		{
-			Vector2 mousePos = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+			v2 mousePos = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
 			_input.mouse.pos = mousePos;
 			_input.mouse.leftClickStartPos = mousePos;
 
@@ -165,7 +173,7 @@ LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, WPARAM w
 
 		case WM_LBUTTONUP:
 		{
-			Vector2 mousePos = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+			v2 mousePos = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
 			_input.mouse.pos = mousePos;
 
 			_input.mouse.leftWasPressed = true;
@@ -174,7 +182,7 @@ LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, WPARAM w
 
 		case WM_RBUTTONDOWN:
 		{
-			Vector2 mousePos = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+			v2 mousePos = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
 			_input.mouse.pos = mousePos;
 			_input.mouse.rightClickStartPos = mousePos;
 
@@ -184,7 +192,7 @@ LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, WPARAM w
 
 		case WM_RBUTTONUP:
 		{
-			Vector2 mousePos = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+			v2 mousePos = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
 			_input.mouse.pos = mousePos;
 
 			_input.mouse.rightWasPressed = true;
@@ -195,7 +203,7 @@ LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, WPARAM w
 		
 		case WM_POINTERUPDATE:
 		{
-			uint32 pointerID = GET_POINTERID_WPARAM(wParam);
+			u32 pointerID = GET_POINTERID_WPARAM(wParam);
 			POINTER_INPUT_TYPE inputType;
 			
 			if (GetPointerType(pointerID, &inputType))
@@ -262,7 +270,7 @@ LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, WPARAM w
 
 		case WM_POINTERDOWN:
 		{
-			uint32 pointerID = GET_POINTERID_WPARAM(wParam);
+			u32 pointerID = GET_POINTERID_WPARAM(wParam);
 			POINTER_INPUT_TYPE inputType;
 
 			if (GetPointerType(pointerID, &inputType))
@@ -361,11 +369,12 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, 
 		OutputDebugStringA("Error loading main dll\n");
 		return 1;
     }
-	
-    mainUpdateCallPtr mainUpdateCall = (mainUpdateCallPtr)GetProcAddress(mainDLL, "mainUpdateCall");
-    if (!mainUpdateCall)
+
+	appInitCallPtr appInit = (appInitCallPtr)GetProcAddress(mainDLL, "appInit");
+	appUpdateCallPtr appUpdate = (appUpdateCallPtr)GetProcAddress(mainDLL, "appUpdate");
+    if (!appUpdate)
     {
-		OutputDebugStringA("Error loading mainUpdateCall function\n");
+		OutputDebugStringA("Error loading appUpdate or appInit functions\n");
 		return 1;
     }
 
@@ -386,6 +395,13 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, 
     Mouse oldMouse = {};
     _input.mouse.leftClickStartPos = V2(-1, -1);
     _input.mouse.rightClickStartPos = V2(-1, -1);
+
+	Bitmap screen;
+	screen.pixels = (u32*)_backBuffer.data;
+	screen.width = _backBuffer.bitmapInfo.bmiHeader.biWidth;
+	screen.height = ABS_VALUE(_backBuffer.bitmapInfo.bmiHeader.biHeight);
+	
+	appInit((Memory*)mainMemory, &screen);
 	
     while (_running)
     {
@@ -403,7 +419,7 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, 
 				FreeLibrary(mainDLL);
 				CopyFile(STATIC_SETTINGS::DLL_FILE_NAME, "running.dll", FALSE);
 				mainDLL = LoadLibraryA("running.dll");
-				mainUpdateCall = (mainUpdateCallPtr)GetProcAddress(mainDLL, "mainUpdateCall");
+			    appUpdate = (appUpdateCallPtr)GetProcAddress(mainDLL, "appUpdateCall");
 			}
 			else
 				FindClose(lock);
@@ -419,29 +435,28 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, 
 			TranslateMessage(&message);
 			DispatchMessage(&message);
 		}
-		
-		Bitmap screen;
-		screen.pixels = (uint32*)_backBuffer.data;
+
+		screen.pixels = (u32*)_backBuffer.data;
 		screen.width = _backBuffer.bitmapInfo.bmiHeader.biWidth;
 		screen.height = ABS_VALUE(_backBuffer.bitmapInfo.bmiHeader.biHeight);
-	    
-		mainUpdateCall((Memory*)mainMemory, &screen, &_input);
+		
+	    appUpdate((Memory*)mainMemory, &screen, &_input);
 		
 		RedrawWindow(windowHandle, 0, 0, RDW_INTERNALPAINT);
 
 		LARGE_INTEGER currentCounts;
 		QueryPerformanceCounter(&currentCounts);
-		uint64 timePassed = currentCounts.QuadPart - lastCounts.QuadPart;
-		real64 timeMs = (real64)timePassed * 1000.0 / (real64)countFrequency.QuadPart;
+	    u64 timePassed = currentCounts.QuadPart - lastCounts.QuadPart;
+	    f64 timeMs = (f64)timePassed * 1000.0 / (f64)countFrequency.QuadPart;
 
 		//TODO(denis): probably don't do a busy loop
 		//NOTE(denis): the epsilon is an attempt to lessen the effects of random spikes
-		real32 epsilon = 0.01f;
-		while (timeMs < (real64)1/(real64)STATIC_SETTINGS::FPS_TARGET * 1000.0 - epsilon)
+		f32 epsilon = 0.01f;
+		while (timeMs < (f64)1/(f64)STATIC_SETTINGS::FPS_TARGET * 1000.0 - epsilon)
 		{
 			QueryPerformanceCounter(&currentCounts);
 			timePassed = currentCounts.QuadPart - lastCounts.QuadPart;
-			timeMs = (real64)timePassed * 1000.0 / (real64)countFrequency.QuadPart;
+			timeMs = (f64)timePassed * 1000.0 / (f64)countFrequency.QuadPart;
 		}
 #if 0
 		char timeBuffer[100];

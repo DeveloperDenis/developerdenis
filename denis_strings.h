@@ -3,76 +3,88 @@
 
 #include "denis_types.h"
 
-#define LOWER_CASE(c) ((c) >= 'a' && (c) <= 'z')
-#define UPPER_CASE(c) ((c) >= 'A' && (c) <= 'Z')
+#define IS_LOWER_CASE(c) ((c) >= 'a' && (c) <= 'z')
+#define IS_UPPER_CASE(c) ((c) >= 'A' && (c) <= 'Z')
+#define IS_LETTER(c) (IS_LOWER_CASE(c) || IS_UPPER_CASE(c))
 
-inline bool charInString(char c, char* string)
+#define IS_NUMBER(c) ((c) >= '0' && (c) <= '9')
+
+static inline bool charInString(char c, char* string)
 {
-    bool result = false;
+	bool result = false;
 
-    if (string)
-    {
+	if (string)
+	{
 		for (int i = 0; string[i] != 0 && !result; ++i)
 		{
 			if (string[i] == c)
 				result = true;
 		}
-    }
-    
-    return result;
+	}
+	
+	return result;
 }
 
 //NOTE(denis): can be used if the strings are not valid C strings
 static inline bool charArraysEqual(char* array1, int size1, char* array2, int size2)
 {
-    bool areEqual = TRUE;
-    int arraySize = size1 < size2 ? size1 : size2;
+	bool areEqual = TRUE;
+	int arraySize = size1 < size2 ? size1 : size2;
 
-    int i;
-    for (i = 0; i < arraySize && areEqual; ++i)
-    {
+	int i;
+	for (i = 0; i < arraySize && areEqual; ++i)
+	{
 		if (array1[i] != array2[i])
 			areEqual = FALSE;
-    }
+	}
 
-    return areEqual;
+	return areEqual;
+}
+
+static inline bool stringStartsWith(char* line, char* identifier)
+{
+	u32 length;
+	for (length = 0; identifier[length] != 0; ++length)
+		;
+	
+	return charArraysEqual(line, length, identifier, length);
 }
 
 //NOTE(denis): assumes that string1 and string2 are valid C strings
 static inline bool stringsEqual(char* string1, char* string2)
 {
-    bool areEqual = TRUE;
-    
-    int i = 0;
-    while (string1[i] != 0 && string2[i] != 0 && areEqual)
-    {
+	bool areEqual = TRUE;
+	
+	int i = 0;
+	while (string1[i] != 0 && string2[i] != 0 && areEqual)
+	{
 		if (string1[i] != string2[i])
 			areEqual = FALSE;
 
 		++i;
-    }
+	}
 
-    if (string1[i] != string2[i])
+	if (string1[i] != string2[i])
 		areEqual = FALSE;
-    
-    return areEqual;
+	
+	return areEqual;
 }
 
 static inline bool stringsEqualIgnoreCase(char* string1, char* string2)
 {
-    bool areEqual = TRUE;
+	bool areEqual = TRUE;
 
-    
-    int i = 0;
-    while (string1[i] != 0 && string2[i] != 0 && areEqual)
-    {
+	
+	int i = 0;
+	while (string1[i] != 0 && string2[i] != 0 && areEqual)
+	{
 		if (string1[i] != string2[i])
 		{
-			if (LOWER_CASE(string1[i]) && UPPER_CASE(string2[i]))
+			if (IS_LOWER_CASE(string1[i]) && IS_UPPER_CASE(string2[i]))
 			{
 				areEqual = (string1[i] - 'a') == (string2[i] - 'A');
 			}
-			else if (UPPER_CASE(string1[i]) && LOWER_CASE(string2[i]))
+			else if (IS_UPPER_CASE(string1[i]) && IS_LOWER_CASE(string2[i]))
 			{
 				areEqual = (string1[i] - 'A') == (string2[i] - 'a');
 			}
@@ -81,28 +93,29 @@ static inline bool stringsEqualIgnoreCase(char* string1, char* string2)
 		}
 
 		++i;
-    }
+	}
 
-    if ((string1[i] == 0 && string2[i] != 0) ||
+	if ((string1[i] == 0 && string2[i] != 0) ||
 		(string1[i] != 0 && string2[i] == 0))
-    {
+	{
 		areEqual = FALSE;
-    }
-    
-    return areEqual;
+	}
+	
+	return areEqual;
 }
 
 //NOTE(denis): returns a pointer that is equal to string, > than string
 // by the number non-blank spaces in the beginning, or NULL if the string contains
 // only blanks
+// trims spaces, newline characters, and tabs
 static char* trimString(char* string)
 {
-    char* result = string;
-    
-    if (string)
-    {
+	char* result = string;
+	
+	if (string)
+	{
 		int i = 0;
-		while (string[i] != 0 && (string[i] == ' ' || string[i] == '\n'))
+		while (string[i] != 0 && (string[i] == ' ' || string[i] == '\n' || string[i] == '\t'))
 			++i;
 	
 		if (string[i] != 0)
@@ -112,42 +125,42 @@ static char* trimString(char* string)
 			int lastNonBlankIndex = i;
 			while (string[i] != 0)
 			{
-				if (string[i] != ' ' && string[i] != '\n')
+				if (string[i] != ' ' && string[i] != '\n' && string[i] != '\t')
 					lastNonBlankIndex = i;
 
 				++i;
 			}
-	    
+		
 			if (lastNonBlankIndex < i - 1)
 				string[lastNonBlankIndex+1] = 0;
 		}
 		else
 			result = NULL;
-    }
+	}
 
-    return result;
+	return result;
 }
 
 //NOTE(denis): does not include the /0 in the string length
 static inline int getStringSize(char* string)
 {
-    int result = 0;
+	int result = 0;
 
-    while (string && string[result] != 0)
-    {
+	while (string && string[result] != 0)
+	{
 		++result;
-    }
-    
-    return result;
+	}
+	
+	return result;
 }
 
 //NOTE(denis): string returned from this function must be freed by the user
 static inline char* createStringFromArray(char* array, int size)
 {
-    char* result = NULL;
+	char* result = NULL;
  
-    if (array)
-    {
+	if (array)
+	{
 		result = (char*)HEAP_ALLOC(size+1);
 	
 		int i;
@@ -156,41 +169,41 @@ static inline char* createStringFromArray(char* array, int size)
 			result[i] = array[i];
 		}
 		result[size] = 0;
-    }
-    return result;
+	}
+	return result;
 }
 
 static inline char* duplicateString(char *string)
 {
-    char *result = 0;
-    
-    if (string)
-    {
-		uint32 numChars = getStringSize(string);
+	char *result = 0;
+	
+	if (string)
+	{
+		u32 numChars = getStringSize(string);
 
 		result = (char*)HEAP_ALLOC(numChars+1);
 
-		for (uint32 i = 0; i < numChars; ++i)
+		for (u32 i = 0; i < numChars; ++i)
 		{
 			result[i] = string[i];
 		}
-    }
+	}
 
-    return result;
+	return result;
 }
 
 //NOTE(denis): user must free result of this function
 static char** tokenizeStringInPlace(char* string, int maxTokens, char separator)
 {
-    char** tokenArray = (char**)HEAP_ALLOC(maxTokens*sizeof(char*));
-    
-    int i;
-    for (i = 0; i < maxTokens; ++i)
+	char** tokenArray = (char**)HEAP_ALLOC(maxTokens*sizeof(char*));
+	
+	int i;
+	for (i = 0; i < maxTokens; ++i)
 		tokenArray[i] = 0;
 
-    int charIndex = 0;
-    for (i = 0; i < maxTokens; ++i)
-    {
+	int charIndex = 0;
+	for (i = 0; i < maxTokens; ++i)
+	{
 		while(string[charIndex] != 0 && string[charIndex] == separator)
 			++charIndex;
 
@@ -207,9 +220,9 @@ static char** tokenizeStringInPlace(char* string, int maxTokens, char separator)
 			string[charIndex++] = 0;
 		else
 			break;
-    }
+	}
 
-    return tokenArray;
+	return tokenArray;
 }
 
  
@@ -217,47 +230,47 @@ static char** tokenizeStringInPlace(char* string, int maxTokens, char separator)
 // characters
 static inline void copyIntoString(char *destination, char *source)
 {
-    if (destination && source)
-    {
-		for (uint32 i = 0; source[i] != 0; ++i)
+	if (destination && source)
+	{
+		for (u32 i = 0; source[i] != 0; ++i)
 		{
 			destination[i] = source[i];
 		}
-    }
+	}
 }
  
 //NOTE(denis): copies a portion of source into destination,
 // the first character copied is index = beginning
 // and the last character copied is at index = end
 static inline void copyIntoString(char *destination, char *source,
-								  uint32 beginning, uint32 end)
+								  u32 beginning, u32 end)
 {
-    uint32 destinationIndex = 0;
-     
-    if (destination && source && beginning < end)
-    {
-		for (uint32 i = beginning; i <= end; ++i)
+	u32 destinationIndex = 0;
+	 
+	if (destination && source && beginning < end)
+	{
+		for (u32 i = beginning; i <= end; ++i)
 		{
 			destination[destinationIndex++] = source[i];
 		}
-    }
+	}
 }
  
 //NOTE(denis): returns a new string which is a+b
 static char* concatStrings(char *a, char *b)
 {
-    uint32 sizeOfA = 0;
-    uint32 sizeOfB = 0;
-    char *result = 0;
+	u32 sizeOfA = 0;
+	u32 sizeOfB = 0;
+	char *result = 0;
  
-    if (a && b)
-    {
-		for (uint32 i = 0; a[i] != 0; ++i)
+	if (a && b)
+	{
+		for (u32 i = 0; a[i] != 0; ++i)
 		{
 			++sizeOfA;
 		}
  
-		for (uint32 i = 0; b[i] != 0; ++i)
+		for (u32 i = 0; b[i] != 0; ++i)
 		{
 			++sizeOfB;
 		}
@@ -266,17 +279,17 @@ static char* concatStrings(char *a, char *b)
  
 		copyIntoString(result, a);
 		copyIntoString(result+sizeOfA, b);
-    }
-     
-    return result;
+	}
+	 
+	return result;
 }
 
 //TODO(denis): these functions do not handle negative numbers properly
-static bool toString(int32 num, char* buffer, uint32 maxLength)
+static bool toString(s32 num, char* buffer, u32 maxLength)
 {
 	bool success = false;
-	uint32 length = 0;
-	int32 temp = num;
+	u32 length = 0;
+	s32 temp = num;
 	while (temp > 0)
 	{
 		temp /= 10;
@@ -285,10 +298,10 @@ static bool toString(int32 num, char* buffer, uint32 maxLength)
 	
 	if (maxLength > 0 && length > 0 && length <= maxLength)
 	{
-	    temp = num;
-		for (uint32 i = 0; i < length && temp > 0; ++i, temp /= 10)
+		temp = num;
+		for (u32 i = 0; i < length && temp > 0; ++i, temp /= 10)
 		{
-		    buffer[(length - 1) - i] = '0' + (temp % 10);
+			buffer[(length - 1) - i] = '0' + (temp % 10);
 		}
 
 		success = true;
@@ -297,13 +310,13 @@ static bool toString(int32 num, char* buffer, uint32 maxLength)
 	return success;
 }
 
-static char* toString(int32 num)
+static char* toString(s32 num)
 {
 	char* result = 0;
-	uint32 length = 0;
+	u32 length = 0;
 
 	//TODO(denis): probably not a huge deal, but this is computed twice
-	int32 temp = num;
+	s32 temp = num;
 	while (temp > 0)
 	{
 		temp /= 10;
@@ -326,11 +339,11 @@ static char* toString(int32 num)
 //TODO(denis): make alternative to this?
 #include <cmath>
 
-static real32 parseReal32String(char* string)
+static f32 parseF32String(char* string)
 {
-	int32 intPart = 0;
-	int32 realPart = 0;
-	uint32 numDecimalDigits = 0;
+	s32 intPart = 0;
+	s32 realPart = 0;
+	u32 numDecimalDigits = 0;
 	
 	bool readingDecimalPart = false;
 	bool isNegative = false;
@@ -338,7 +351,7 @@ static real32 parseReal32String(char* string)
 	if (!string)
 		return 0;
 	
-	uint32 i = 0;
+	u32 i = 0;
 	while (string[i] != 0)
 	{
 		if (string[i] == '-')
@@ -365,9 +378,9 @@ static real32 parseReal32String(char* string)
 		++i;
 	}
 
-	real32 result = 0.0f;
+	f32 result = 0.0f;
 	result += intPart;
-	result += (real32)realPart/pow(10.0f, (real32)numDecimalDigits);
+	result += (f32)realPart/pow(10.0f, (f32)numDecimalDigits);
 
 	if (isNegative)
 		result = -result;
@@ -375,15 +388,39 @@ static real32 parseReal32String(char* string)
 	return result;
 }
 
-static int32 parseInt32String(char* string)
+static u32 parseU32String(char* string)
 {
-	int32 result = 0;
+	u32 result = 0;
+
+	if (!string)
+		return result;
+	
+	u32 i = 0;
+	while (string[i] != 0)
+	{
+		if (string[i] >= '0' && string[i] <= '9')
+		{
+			result *= 10;
+			result += string[i] - '0';
+		}
+		else
+			break;
+
+		++i;
+	}
+	
+	return result;
+}
+
+static s32 parseS32String(char* string)
+{
+	s32 result = 0;
 	bool isNegative = false;
 
 	if (!string)
 		return result;
 	
-	uint32 i = 0;
+	u32 i = 0;
 	while (string[i] != 0)
 	{
 		if (string[i] == '-')

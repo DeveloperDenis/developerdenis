@@ -34,133 +34,168 @@
 #define CLAMP_RANGE(value, min, max) ((value) > (min) ? MIN(value, max) : (min))
 #define CLAMP_MAX(value, max) MAX(value, max)
 
-#define ARRAY_COUNT(array, type) (sizeof(array)/sizeof(type))
-
 //---------------------------------------------------------------------------
 // Type Declarations:
-union Vector2;
-union Vector2f;
-union Vector3;
-union Vector3f;
-union Vector4f;
+union v2;
+union v2f;
+union v3;
+union v3f;
+union v4f;
 
 struct Matrix4f;
 
 struct Rect2;
 struct Rect2f;
 
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 // Functions Declarations:
 
-static inline bool pointInRect(Vector2 point, Rect2 rect);
+static inline bool pointInRect(v2 point, Rect2 rect);
 
-static inline bool pointInCircle(Vector2 point, Vector2 pos, int32 radius);
-static inline bool pointInCircle(Vector2f point, Vector2f pos, int32 radius);
+static inline bool pointInCircle(v2 point, v2 pos, s32 radius);
+static inline bool pointInCircle(v2f point, v2f pos, s32 radius);
 
-static inline real32 slope(Vector2 point1, Vector2 point2);
-static inline real32 inverseSlope(Vector2 point1, Vector2 point2);
+static inline f32 slope(v2 point1, v2 point2);
+static inline f32 inverseSlope(v2 point1, v2 point2);
 
-static inline real32 magnitude(Vector2 v);
-static inline real32 magnitude(Vector3f v);
+static inline f32 magnitude(v2 v);
+static inline f32 magnitude(v3f v);
 
-static inline Vector3f normalize(Vector3f vector);
+static inline v3f normalize(v3f vector);
 
-static inline real32 dot(Vector3f v1, Vector3f v2);
+static inline f32 dot(v3f v1, v3f v2);
 
-static inline Vector3 cross(Vector3 v1, Vector3 v2);
-static inline Vector3f cross(Vector3f v1, Vector3f v2);
-static inline Vector4f cross(Vector4f v1, Vector4f v2);
+static inline v3 cross(v3 v1, v3 v2);
+static inline v3f cross(v3f v1, v3f v2);
+static inline v4f cross(v4f v1, v4f v2);
 
 
 //---------------------------------------------------------------------------
 // Vector types:
 
-union Vector2
+union v2
 {
 	struct
 	{
-		int32 x;
-		int32 y;
+		s32 x;
+		s32 y;
 	};
 	struct
 	{
-		int32 w;
-		int32 h;
+		s32 w;
+		s32 h;
 	};
-	int32 e[2];
+	s32 e[2];
 };
 
-union Vector2f
+union v2f
 {
 	struct
 	{
-		real32 x;
-		real32 y;
+		f32 x;
+		f32 y;
 	};
 	struct
 	{
-		real32 w;
-		real32 h;
+		f32 w;
+		f32 h;
 	};
-	real32 e[2];
+	f32 e[2];
 };
 
-union Vector3
+union v3
 {
 	struct
 	{
-		int32 x;
-		int32 y;
-		int32 z;
+		s32 x;
+		s32 y;
+		s32 z;
 	};
 	struct
 	{
-		int32 r;
-		int32 g;
-		int32 b;
+		s32 r;
+		s32 g;
+		s32 b;
 	};
 	struct
 	{
-		Vector2 xy;
-		int32 filler;
+		v2 xy;
+		s32 filler;
 	};
-	int32 e[3];
+	s32 e[3];
 
-	int32 operator[](uint32 index)
+	s32& operator[](u32 index)
 	{
 		return e[index];
 	}
 };
 
-union Vector3f
+union v3f
 {
 	struct
 	{
-		real32 x;
-		real32 y;
-		real32 z;
+		f32 x;
+		f32 y;
+		f32 z;
 	};
 	struct
 	{
-		real32 r;
-		real32 g;
-		real32 b;
+		f32 r;
+		f32 g;
+		f32 b;
 	};
-	real32 e[3];
+	struct
+	{
+		v2f xy;
+		f32 _unused;
+	};
+	f32 e[3];
+
+	f32& operator[](u32 index)
+	{
+		return e[index];
+	}
+
+	v3f& operator+=(v3f right)
+	{
+		this->x = this->x + right.x;
+		this->y = this->y + right.y;
+		this->z = this->z + right.z;
+		return *this;
+	}
+	v3f& operator-=(v3f right)
+	{
+		this->x = this->x - right.x;
+		this->y = this->y - right.y;
+		this->z = this->z - right.z;
+		return *this;
+	}
 };
 
-union Vector4f
+union v4f
 {
 	struct
 	{
-		real32 x;
-		real32 y;
-		real32 z;
-		real32 w;
+		f32 x;
+		f32 y;
+		f32 z;
+		f32 w;
 	};
-	real32 e[4];
+	struct
+	{
+		f32 r;
+		f32 g;
+		f32 b;
+		f32 a;
+	};
+	struct
+	{
+		v3f xyz;
+		f32 _unused;
+	};
+	f32 e[4];
 
-	real32& operator[](uint32 index)
+	f32& operator[](u32 index)
 	{
 		return e[index];
 	}
@@ -172,35 +207,36 @@ union Vector4f
 
 struct Matrix4f
 {
-	real32 elements[4][4];
+	f32 elements[4][4];
 
-	Vector3f currentScale;
+	v3f currentScale;
 
-	real32* operator[](uint32 index)
+	f32* operator[](u32 index)
 	{
 		return elements[index];
 	}
 
-	void setRow(uint32 row, Vector3f newValues);
+	void setRow(u32 row, v3f newValues);
+	void setRow(u32 row, v4f newValues);
 
-	void setTranslation(real32 x, real32 y, real32 z);
-	void setTranslation(Vector3f translation);
+	void setTranslation(f32 x, f32 y, f32 z);
+	void setTranslation(v3f translation);
 
-	Vector3f getTranslation();
+	v3f getTranslation();
 
-	void translate(real32 x, real32 y, real32 z);
+	void translate(f32 x, f32 y, f32 z);
 	
-	void setScale(real32 x, real32 y, real32 z);
-	void setScale(Vector3f newScale);
+	void setScale(f32 x, f32 y, f32 z);
+	void setScale(v3f newScale);
 
-	Vector3f getScale();
+	v3f getScale();
 	
-	void scale(real32 x, real32 y, real32 z);
+	void scale(f32 x, f32 y, f32 z);
 	
 	//NOTE(denis): these are in radians
-	void setRotation(real32 xAngle, real32 yAngle, real32 zAngle);
+	void setRotation(f32 xAngle, f32 yAngle, f32 zAngle);
 
-	void rotate(real32 xAngle, real32 yAngle, real32 zAngle);
+	void rotate(f32 xAngle, f32 yAngle, f32 zAngle);
 };
 
 //---------------------------------------------------------------------------
@@ -212,108 +248,120 @@ struct Matrix4f
 // Rectangle types
 struct Rect2
 {
-	Vector2 min; // min is top-left
-	Vector2 max; // max is bottom-right
+	v2 min; // min is top-left
+	v2 max; // max is bottom-right
 
-	Rect2();
-	Rect2(int32 x, int32 y, int32 width, int32 height);
-	Rect2(Vector2 min, Vector2 max);
+	Rect2(s32 x, s32 y, s32 width, s32 height);
+	Rect2(v2 min, v2 max);
 	
-	int32 getLeft() { return min.x; };
-	int32 getRight() { return max.x; };
-	int32 getTop() { return min.y; };
-	int32 getBottom() { return max.y; };
+	s32 getLeft() { return min.x; };
+	s32 getRight() { return max.x; };
+	s32 getTop() { return min.y; };
+	s32 getBottom() { return max.y; };
 
-	int32 getWidth() { return max.x - min.x; };
-	int32 getHeight() { return ABS_VALUE(max.y - min.y); };
+	s32 getWidth() { return max.x - min.x; };
+	s32 getHeight() { return ABS_VALUE(max.y - min.y); };
 
-	void moveLeft(int32 amount) { setX(min.x - amount); }
-	void moveRight(int32 amount) { setX(min.x + amount); }
-	void moveUp(int32 amount) { setY(min.y RAISE_BY amount); }
-	void moveDown(int32 amount) { setY(min.y LOWER_BY amount); }
+	void moveLeft(s32 amount) { setX(min.x - amount); }
+	void moveRight(s32 amount) { setX(min.x + amount); }
+	void moveUp(s32 amount) { setY(min.y RAISE_BY amount); }
+	void moveDown(s32 amount) { setY(min.y LOWER_BY amount); }
 
-	void setX(int32 newX);
-	void setY(int32 newY);
-	void setPos(Vector2 newPos);
+	void setX(s32 newX);
+	void setY(s32 newY);
+	void setPos(v2 newPos);
 };
 
 struct Rect2f
 {
-	Vector2f min;
-	Vector2f max;
+	v2f min;
+	v2f max;
 
-	Rect2f();
-	Rect2f(real32 x, real32 y, real32 width, real32 height);
-	Rect2f(Vector2f min, Vector2f max);
+	Rect2f(f32 x, f32 y, f32 width, f32 height);
+	Rect2f(v2f min, v2f max);
 	
-	real32 getLeft() { return min.x; };
-	real32 getRight() { return max.x; };
-	real32 getTop() { return min.y; };
-	real32 getBottom() { return max.y; };
+	f32 getLeft() { return min.x; };
+	f32 getRight() { return max.x; };
+	f32 getTop() { return min.y; };
+	f32 getBottom() { return max.y; };
 
-	real32 getWidth() { return max.x - min.x; };
-	real32 getHeight() { return ABS_VALUE(max.y - min.y); };
+	f32 getWidth() { return max.x - min.x; };
+	f32 getHeight() { return ABS_VALUE(max.y - min.y); };
 
-	void setX(real32 newX);
-	void setY(real32 newY);
-	void setPos(Vector2f newPos);
+	void setX(f32 newX);
+	void setY(f32 newY);
+	void setPos(v2f newPos);
 };
 
 //---------------------------------------------------------------------------
 // Vector Constructors
 
-static inline Vector2 V2(int32 x, int32 y)
+static inline v2 V2(s32 x, s32 y)
 {
-	Vector2 result = {x, y};
+	v2 result = {x, y};
 	return result;
 }
-static inline Vector2 V2(Vector2f v2f)
+static inline v2 V2(v2f v2f)
 {
-	Vector2 result = {(int32)v2f.x, (int32)v2f.y};
-	return result;
-}
-
-static inline Vector2f V2f(real32 x, real32 y)
-{
-	Vector2f result = {x, y};
-	return result;
-}
-static inline Vector2f V2f(Vector2 v2)
-{
-	Vector2f result = {(real32)v2.x, (real32)v2.y};
+	v2 result = {(s32)v2f.x, (s32)v2f.y};
 	return result;
 }
 
-static inline Vector3 V3(int32 x, int32 y, int32 z)
+static inline v2f V2f(f32 x, f32 y)
 {
-	Vector3 result = {x, y, z};
+	v2f result = {x, y};
 	return result;
 }
-static inline Vector3 V3(Vector2 v, int32 z)
+static inline v2f V2f(v2 v2)
 {
-	Vector3 result = {v.x, v.y, z};
-	return result;
-}
-
-static inline Vector3f V3f(real32 x, real32 y, real32 z)
-{
-	Vector3f result = {x, y, z};
+	v2f result = {(f32)v2.x, (f32)v2.y};
 	return result;
 }
 
-static inline Vector4f V4f(real32 x, real32 y, real32 z, real32 w)
+static inline v3 V3(s32 x, s32 y, s32 z)
 {
-	Vector4f result = {x, y, z, w};
+	v3 result;
+	result.x = x;
+	result.y = y;
+	result.z = z;
 	return result;
 }
-static inline Vector4f V4f(real32 x, real32 y, real32 z)
+static inline v3 V3(v2 v, s32 z)
 {
-	Vector4f result = {x, y, z, 1.0f};
+	v3 result = V3(v.x, v.y, z);
 	return result;
 }
-static inline Vector4f V4f(Vector3f v, real32 w)
+
+static inline v3f V3f(f32 x, f32 y, f32 z)
 {
-	Vector4f result = {v.x, v.y, v.z, w};
+	v3f result;
+	result.x = x;
+	result.y = y;
+	result.z = z;
+	return result;
+}
+static inline v3f V3f(v4f v)
+{
+	return V3f(v.x, v.y, v.z);
+}
+
+static inline v4f V4f(f32 x, f32 y, f32 z, f32 w)
+{
+	v4f result;
+	result.x = x;
+	result.y = y;
+	result.z = z;
+	result.w = w;
+	return result;
+}
+static inline v4f V4f(f32 x, f32 y, f32 z)
+{
+	v4f result = V4f(x, y, z, 1.0f);
+	return result;
+}
+static inline v4f V4f(v3f v, f32 w)
+{
+	v4f result = V4f(v.x, v.y, v.z, w);
 	return result;
 }
 
@@ -321,166 +369,179 @@ static inline Vector4f V4f(Vector3f v, real32 w)
 //---------------------------------------------------------------------------
 // Vector operator overloads
 
-Vector2 operator+(Vector2 left, Vector2 right)
+v2 operator+(v2 left, v2 right)
 {
-	Vector2 result;
+	v2 result;
 	result.x = left.x + right.x;
 	result.y = left.y + right.y;
 	return result;
 }
-Vector2 operator-(Vector2 left, Vector2 right)
+v2 operator-(v2 left, v2 right)
 {
-	Vector2 result;
+	v2 result;
 	result.x = left.x - right.x;
 	result.y = left.y - right.y;
 	return result;
 }
-Vector2 operator*(Vector2 left, int32 right)
+v2 operator*(v2 left, s32 right)
 {
-	Vector2 result;
+	v2 result;
 	result.x = left.x * right;
 	result.y = left.y * right;
 	return result;
 }
-Vector2 operator/(Vector2 left, int32 right)
+v2 operator/(v2 left, s32 right)
 {
-	Vector2 result;
+	v2 result;
 	result.x = left.x / right;
 	result.y = left.y / right;
 	return result;
 }
 
-Vector2f operator+(Vector2f left, Vector2f right)
+v2f operator+(v2f left, v2f right)
 {
-	Vector2f result;
+	v2f result;
 	result.x = left.x + right.x;
 	result.y = left.y + right.y;
 	return result;
 }
-Vector2f operator-(Vector2f left, Vector2f right)
+v2f operator-(v2f left, v2f right)
 {
-	Vector2f result;
+	v2f result;
 	result.x = left.x - right.x;
 	result.y = left.y - right.y;
 	return result;
 }
-Vector2f operator*(Vector2f left, real32 right)
+v2f operator*(v2f left, f32 right)
 {
-	Vector2f result;
+	v2f result;
 	result.x = left.x * right;
 	result.y = left.y * right;
 	return result;
 }
-Vector2f operator/(Vector2f left, real32 right)
+v2f operator/(v2f left, f32 right)
 {
-	Vector2f result;
+	v2f result;
 	result.x = left.x / right;
 	result.y = left.y / right;
 	return result;
 }
 
-static inline Vector3 operator+(Vector3 left, Vector3 right)
+static inline v3 operator+(v3 left, v3 right)
 {
-	Vector3 result;
+	v3 result;
 	result.x = left.x + right.x;
 	result.y = left.y + right.y;
 	result.z = left.z + right.z;
 	return result;
 }
-static inline Vector3 operator-(Vector3 left, Vector3 right)
+static inline v3 operator-(v3 left, v3 right)
 {
-	Vector3 result;
+	v3 result;
 	result.x = left.x - right.x;
 	result.y = left.y - right.y;
 	result.z = left.z - right.z;
 	return result;
 }
-static inline Vector3 operator*(Vector3 left, int32 right)
+static inline v3 operator*(v3 left, s32 right)
 {
-	Vector3 result;
+	v3 result;
 	result.x = left.x * right;
 	result.y = left.y * right;
 	result.z = left.z * right;
 	return result;
 }
-static inline Vector3 operator/(Vector3 left, int32 right)
+static inline v3 operator/(v3 left, s32 right)
 {
-	Vector3 result;
+	v3 result;
 	result.x = left.x/right;
 	result.y = left.y/right;
 	result.z = left.z/right;
 	return result;
 }
 
-static inline Vector3f operator-(Vector3f& v)
+static inline v3f operator-(v3f& v)
 {
-	Vector3f result;
+	v3f result;
 	result.x = -v.x;
 	result.y = -v.y;
 	result.z = -v.z;		
 	return result;
 }
-static inline Vector3f operator+(Vector3f left, Vector3f right)
+static inline v3f operator+(v3f left, v3f right)
 {
-	Vector3f result;
+	v3f result;
 	result.x = left.x + right.x;
 	result.y = left.y + right.y;
 	result.z = left.z + right.z;	
 	return result;
 }
-static inline Vector3f operator-(Vector3f left, Vector3f right)
+static inline v3f operator-(v3f left, v3f right)
 {
-	Vector3f result;
+	v3f result;
 	result.x = left.x - right.x;
 	result.y = left.y - right.y;
 	result.z = left.z - right.z;
 	return result;
 }
-static inline Vector3f operator*(int32 left, Vector3f right)
+static inline v3f operator*(s32 left, v3f right)
 {
-	Vector3f result;
+	v3f result;
 	result.x = right.x * left;
 	result.y = right.y * left;
 	result.z = right.z * left;
 	return result;
 }
-static inline Vector3f operator*(Vector3f left, int32 right)
+static inline v3f operator*(v3f left, s32 right)
 {
 	return right*left;
 }
-static inline Vector3f operator*(Vector3f left, real32 right)
+static inline v3f operator*(v3f left, f32 right)
 {
-	Vector3f result;
+	v3f result;
 	result.x = left.x * right;
 	result.y = left.y * right;
 	result.z = left.z * right;
 	return result;
 }
-static inline Vector3f operator/(Vector3f left, real32 right)
+static inline v3f operator*(f32 left, v3f right)
 {
-	Vector3f result;
+	return right*left;
+}
+static inline v3f operator/(v3f left, f32 right)
+{
+	v3f result;
 	result.x = left.x / right;
 	result.y = left.y / right;
 	result.z = left.z / right;
 	return result;
 }
-static inline bool operator!=(Vector3f left, Vector3f right)
+static inline bool operator!=(v3f left, v3f right)
 {
 	return left.x != right.x || left.y != right.y || left.z != right.z;
 }
 
-static inline Vector4f operator-(Vector4f left, Vector4f right)
+static inline v4f operator+(v4f left, v4f right)
 {
-	Vector4f result;
+	v4f result;
+	result.x = left.x + right.x;
+	result.y = left.y + right.y;
+	result.z = left.z + right.z;
+	result.w = left.w + right.w;
+	return result;
+}
+static inline v4f operator-(v4f left, v4f right)
+{
+	v4f result;
 	result.x = left.x - right.x;
 	result.y = left.y - right.y;
 	result.z = left.z - right.z;
 	result.w = left.w - right.w;	
 	return result;
 }
-static inline Vector4f operator/(Vector4f left, real32 scalar)
+static inline v4f operator/(v4f left, f32 scalar)
 {
-	Vector4f result;	
+	v4f result;
 	result.x = left.x / scalar;
 	result.y = left.y / scalar;
 	result.z = left.z / scalar;
@@ -510,33 +571,33 @@ static inline Matrix4f M4f()
 	return result;
 }
 
-static inline Matrix4f getXRotationMatrix(real32 xAngle)
+static inline Matrix4f getXRotationMatrix(f32 xAngle)
 {
 	Matrix4f xRotation = getIdentityMatrix4f();
-	xRotation[1][1] = (real32)cos(xAngle);
-	xRotation[1][2] = (real32)-sin(xAngle);
-	xRotation[2][1] = (real32)sin(xAngle);
-	xRotation[2][2] = (real32)cos(xAngle);
+	xRotation[1][1] = (f32)cos(xAngle);
+	xRotation[1][2] = (f32)-sin(xAngle);
+	xRotation[2][1] = (f32)sin(xAngle);
+	xRotation[2][2] = (f32)cos(xAngle);
 
 	return xRotation;
 }
-static inline Matrix4f getYRotationMatrix(real32 yAngle)
+static inline Matrix4f getYRotationMatrix(f32 yAngle)
 {
 	Matrix4f yRotation = getIdentityMatrix4f();
-	yRotation[0][0] = (real32)cos(yAngle);
-	yRotation[0][2] = (real32)sin(yAngle);
-	yRotation[2][0] = (real32)-sin(yAngle);
-	yRotation[2][2] = (real32)cos(yAngle);
+	yRotation[0][0] = (f32)cos(yAngle);
+	yRotation[0][2] = (f32)sin(yAngle);
+	yRotation[2][0] = (f32)-sin(yAngle);
+	yRotation[2][2] = (f32)cos(yAngle);
 
 	return yRotation;
 }
-static inline Matrix4f getZRotationMatrix(real32 zAngle)
+static inline Matrix4f getZRotationMatrix(f32 zAngle)
 {
 	Matrix4f zRotation = getIdentityMatrix4f();
-	zRotation[0][0] = (real32)cos(zAngle);
-	zRotation[0][1] = (real32)-sin(zAngle);
-	zRotation[1][0] = (real32)sin(zAngle);
-	zRotation[1][1] = (real32)cos(zAngle);
+	zRotation[0][0] = (f32)cos(zAngle);
+	zRotation[0][1] = (f32)-sin(zAngle);
+	zRotation[1][0] = (f32)sin(zAngle);
+	zRotation[1][1] = (f32)cos(zAngle);
 
 	return zRotation;
 }
@@ -549,12 +610,12 @@ static inline Matrix4f operator*(Matrix4f left, Matrix4f right)
 {
 	Matrix4f result = M4f();
 
-	for (uint32 row = 0; row < 4; ++row)
+	for (u32 row = 0; row < 4; ++row)
 	{
-		for (uint32 col = 0; col < 4; ++col)
+		for (u32 col = 0; col < 4; ++col)
 		{
-			real32 sum = 0;
-			for (uint32 element = 0; element < 4; ++element)
+			f32 sum = 0;
+			for (u32 element = 0; element < 4; ++element)
 			{
 				sum += left[row][element] * right[element][col];
 			}
@@ -565,31 +626,27 @@ static inline Matrix4f operator*(Matrix4f left, Matrix4f right)
 	return result;
 }
 
-static inline Vector4f operator*(Matrix4f left, Vector4f right)
+static inline v4f operator*(Matrix4f left, v4f right)
 {
-	Vector4f result;
+	v4f result;
 
 	result.x = left[0][0]*right.x + left[0][1]*right.y + left[0][2]*right.z + left[0][3]*right.w;
 	result.y = left[1][0]*right.x + left[1][1]*right.y + left[1][2]*right.z + left[1][3]*right.w;
 	result.z = left[2][0]*right.x + left[2][1]*right.y + left[2][2]*right.z + left[2][3]*right.w;
 	result.w = left[3][0]*right.x + left[3][1]*right.y + left[3][2]*right.z + left[3][3]*right.w;
 	
-	if (result.w != 1.0f)
-	{
-		result = result/result.w;
-	}
-	
 	return result;
 }
-static inline Vector4f operator*(Matrix4f left, Vector3f right)
+static inline v3f operator*(Matrix4f left, v3f right)
 {
-	return left * V4f(right, 1.0f);
+	v4f result = left * V4f(right, 1.0f);
+	return result.xyz;
 }
 
 //--------------------------------------------------------------------------
 // Matrix Member Functions
 
-void Matrix4f::setRow(uint32 row, Vector3f newValues)
+void Matrix4f::setRow(u32 row, v3f newValues)
 {
 	if (row > 3)
 		return;
@@ -598,32 +655,42 @@ void Matrix4f::setRow(uint32 row, Vector3f newValues)
 	elements[row][1] = newValues.y;
 	elements[row][2] = newValues.z;
 }
+void Matrix4f::setRow(u32 row, v4f newValues)
+{
+	if (row > 3)
+		return;
 
-void Matrix4f::setTranslation(real32 x, real32 y, real32 z)
+	elements[row][0] = newValues.x;
+	elements[row][1] = newValues.y;
+	elements[row][2] = newValues.z;
+	elements[row][3] = newValues.w;
+}
+
+void Matrix4f::setTranslation(f32 x, f32 y, f32 z)
 {
 	elements[0][3] = x;
 	elements[1][3] = y;
 	elements[2][3] = z;
 }
-void Matrix4f::setTranslation(Vector3f translation)
+void Matrix4f::setTranslation(v3f translation)
 {
 	setTranslation(translation.x, translation.y, translation.z);
 }
 
-Vector3f Matrix4f::getTranslation()
+v3f Matrix4f::getTranslation()
 {
-	Vector3f result = {elements[0][3], elements[1][3], elements[2][3]};
+	v3f result = V3f(elements[0][3], elements[1][3], elements[2][3]);
 	return result;
 }
 
-void Matrix4f::translate(real32 x, real32 y, real32 z)
+void Matrix4f::translate(f32 x, f32 y, f32 z)
 {
 	elements[0][3] += x;
 	elements[1][3] += y;
 	elements[2][3] += z;
 }
 
-void Matrix4f::setScale(real32 x, real32 y, real32 z)
+void Matrix4f::setScale(f32 x, f32 y, f32 z)
 {
 	//NOTE(denis): first we need to remove the current scale
 	elements[0][0] /= currentScale.x;
@@ -636,26 +703,26 @@ void Matrix4f::setScale(real32 x, real32 y, real32 z)
 
 	currentScale = V3f(x, y, z);
 }
-void Matrix4f::setScale(Vector3f newScale)
+void Matrix4f::setScale(v3f newScale)
 {
 	setScale(newScale.x, newScale.y, newScale.z);
 }
 
-Vector3f Matrix4f::getScale()
+v3f Matrix4f::getScale()
 {
 	return currentScale;
 }
 
-void Matrix4f::scale(real32 x, real32 y, real32 z)
+void Matrix4f::scale(f32 x, f32 y, f32 z)
 {
 	setScale(currentScale.x * x, currentScale.y * y, currentScale.z * z);
 }
 
 //NOTE(denis): these are in radians
-void Matrix4f::setRotation(real32 xAngle, real32 yAngle, real32 zAngle)
+void Matrix4f::setRotation(f32 xAngle, f32 yAngle, f32 zAngle)
 {
-	Vector3f savedTranslation = getTranslation();
-	Vector3f savedScale = currentScale;
+	v3f savedTranslation = getTranslation();
+	v3f savedScale = currentScale;
 	currentScale = V3f(1.0f, 1.0f, 1.0f);
 
 	Matrix4f xRotation = getXRotationMatrix(xAngle);
@@ -669,10 +736,10 @@ void Matrix4f::setRotation(real32 xAngle, real32 yAngle, real32 zAngle)
 }
 
 //TODO(denis): probably super inefficient
-void Matrix4f::rotate(real32 xAngle, real32 yAngle, real32 zAngle)
+void Matrix4f::rotate(f32 xAngle, f32 yAngle, f32 zAngle)
 {
-	Vector3f savedTranslation = getTranslation();
-	Vector3f savedScale = currentScale;
+	v3f savedTranslation = getTranslation();
+	v3f savedScale = currentScale;
 	setScale(1.0f, 1.0f, 1.0f);
 		
 	Matrix4f xRotation = getXRotationMatrix(xAngle);
@@ -689,70 +756,60 @@ void Matrix4f::rotate(real32 xAngle, real32 yAngle, real32 zAngle)
 //--------------------------------------------------------------------------
 // Rectangle Member Functions
 
-Rect2::Rect2()
-{
-	min = V2(0,0);
-	max = V2(0,0);
-}
-Rect2::Rect2(int32 x, int32 y, int32 width, int32 height)
+Rect2::Rect2(s32 x, s32 y, s32 width, s32 height)
 {
 	min = V2(x, y);
 	max = V2(x + width, y LOWER_BY height);
 }
-Rect2::Rect2(Vector2 min, Vector2 max)
+Rect2::Rect2(v2 min, v2 max)
 {
 	this->min = min;
 	this->max = max;
 }
 
-void Rect2::setX(int32 newX)
+void Rect2::setX(s32 newX)
 {
-	int32 width = getWidth();
+	s32 width = getWidth();
 	min.x = newX;
 	max.x = newX + width;
 }
-void Rect2::setY(int32 newY)
+void Rect2::setY(s32 newY)
 {
-	int32 height = getHeight();
+	s32 height = getHeight();
 	min.y = newY;
 	max.y = newY LOWER_BY height;
 }
-void Rect2::setPos(Vector2 newPos)
+void Rect2::setPos(v2 newPos)
 {
 	setX(newPos.x);
 	setY(newPos.y);
 }
 
 
-Rect2f::Rect2f()
-{
-	min = V2f(0.0f, 0.0f);
-	max = V2f(0.0f, 0.0f);
-}
-Rect2f::Rect2f(real32 x, real32 y, real32 width, real32 height)
+Rect2f::Rect2f(f32 x, f32 y, f32 width, f32 height)
 {
 	min = V2f(x, y);
 	max = V2f(x + width, y LOWER_BY height);
 }
-Rect2f::Rect2f(Vector2f min, Vector2f max)
+Rect2f::Rect2f(v2f min, v2f max)
 {
 	this->min = min;
 	this->max = max;
 }
 
-void Rect2f::setX(real32 newX)
+void Rect2f::setX(f32 newX)
 {
-	real32 width = getWidth();
+	f32 width = getWidth();
 	min.x = newX;
 	max.x = newX + width;
 }
-void Rect2f::setY(real32 newY)
+void Rect2f::setY(f32 newY)
 {
-	real32 height = getHeight();
+	f32 height = getHeight();
 	min.y = newY;
 	max.y = newY LOWER_BY height;
 }
-void Rect2f::setPos(Vector2f newPos)
+void Rect2f::setPos(v2f newPos)
 {
 	setX(newPos.x);
 	setY(newPos.y);
@@ -762,63 +819,63 @@ void Rect2f::setPos(Vector2f newPos)
 // General Function Definitions
 
 #if defined(UP_POSITIVE_Y)
-static inline bool pointInRect(Vector2 point, Rect2 rect)
+static inline bool pointInRect(v2 point, Rect2 rect)
 {
-    return point.x > rect.getLeft() && point.x < rect.getRight() &&
+	return point.x > rect.getLeft() && point.x < rect.getRight() &&
 		point.y < rect.getTop() && point.y > rect.getBottom();
 }
 #else
-static inline bool pointInRect(Vector2 point, Rect2 rect)
+static inline bool pointInRect(v2 point, Rect2 rect)
 {
-    return point.x > rect.getLeft() && point.x < rect.getRight() &&
+	return point.x > rect.getLeft() && point.x < rect.getRight() &&
 		point.y > rect.getTop() && point.y < rect.getBottom();
 }
 #endif
 
 //TODO(denis): for now this only checks the smallest rect that contains the given circle
-static inline bool pointInCircle(Vector2 point, Vector2 pos, int32 radius)
+static inline bool pointInCircle(v2 point, v2 pos, s32 radius)
 {
-    return point.x > pos.x - radius && point.x < pos.x + radius &&
+	return point.x > pos.x - radius && point.x < pos.x + radius &&
 		point.y > pos.y - radius && point.y < pos.y + radius;
 }
-static inline bool pointInCircle(Vector2f point, Vector2f pos, int32 radius)
+static inline bool pointInCircle(v2f point, v2f pos, s32 radius)
 {
-    return point.x > pos.x - radius && point.x < pos.x + radius &&
+	return point.x > pos.x - radius && point.x < pos.x + radius &&
 		point.y > pos.y - radius && point.y < pos.y + radius;	
 }
 
-real32 slope(Vector2 point1, Vector2 point2)
+f32 slope(v2 point1, v2 point2)
 {
-	return (real32)(point2.y - point1.y) / (real32)(point2.x - point1.x);
+	return (f32)(point2.y - point1.y) / (f32)(point2.x - point1.x);
 }
-real32 inverseSlope(Vector2 point1, Vector2 point2)
+f32 inverseSlope(v2 point1, v2 point2)
 {
-	return (real32)(point2.x - point1.x) / (real32)(point2.y - point1.y);
-}
-
-static inline real32 magnitude(Vector2 v)
-{
-	return sqrt((real32)(v.x*v.x + v.y*v.y));
-}
-static inline real32 magnitude(Vector3f v)
-{
-	return sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
+	return (f32)(point2.x - point1.x) / (f32)(point2.y - point1.y);
 }
 
-static inline Vector3f normalize(Vector3f vector)
+static inline f32 magnitude(v2 v)
 {
-	Vector3f result = {};
+	return (f32)sqrt((f32)(v.x*v.x + v.y*v.y));
+}
+static inline f32 magnitude(v3f v)
+{
+	return (f32)sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
+}
+
+static inline v3f normalize(v3f vector)
+{
+	v3f result = {};
 	
-	real32 vectorMagnitude = magnitude(vector);
+	f32 vectorMagnitude = magnitude(vector);
 	if (vectorMagnitude > 0)
 		result = vector/vectorMagnitude;
 	
 	return result;
 }
 
-static inline Vector3 cross(Vector3 v1, Vector3 v2)
+static inline v3 cross(v3 v1, v3 v2)
 {
-	Vector3 result;
+	v3 result;
 
 	result.x = v1.y*v2.z - v1.z*v2.y;
 	result.y = v1.z*v2.x - v1.x*v2.z;
@@ -826,9 +883,9 @@ static inline Vector3 cross(Vector3 v1, Vector3 v2)
 
 	return result;
 }
-static inline Vector3f cross(Vector3f v1, Vector3f v2)
+static inline v3f cross(v3f v1, v3f v2)
 {
-	Vector3f result;
+	v3f result;
 	
 	result.x = v1.y*v2.z - v1.z*v2.y;
 	result.y = v1.z*v2.x - v1.x*v2.z;
@@ -836,18 +893,24 @@ static inline Vector3f cross(Vector3f v1, Vector3f v2)
 
 	return result;
 }
-static inline Vector4f cross(Vector4f v1, Vector4f v2)
+static inline v4f cross(v4f v1, v4f v2)
 {
-	Vector3f reducedVector1 = V3f(v1.x, v1.y, v1.z);
-	Vector3f reducedVector2 = V3f(v2.x, v2.y, v2.z);
+	v3f reducedVector1 = V3f(v1.x, v1.y, v1.z);
+	v3f reducedVector2 = V3f(v2.x, v2.y, v2.z);
 
-	Vector4f result = V4f(cross(reducedVector1, reducedVector2), 1.0f);
+	v4f result = V4f(cross(reducedVector1, reducedVector2), 1.0f);
 	return result;
 }
 
-static inline real32 dot(Vector3f v1, Vector3f v2)
+static inline f32 dot(v3f v1, v3f v2)
 {
-	real32 result = v1.x*v2.x + v1.y*v2.y + v1.z*v2.z;
+	f32 result = v1.x*v2.x + v1.y*v2.y + v1.z*v2.z;
+	return result;
+}
+
+static inline v3f hadamard(v3f v1, v3f v2)
+{
+	v3f result = V3f(v1.x*v2.x, v1.y*v2.y, v1.z*v2.z);
 	return result;
 }
 

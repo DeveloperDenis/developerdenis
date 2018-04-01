@@ -3,18 +3,18 @@
 
 #include <stdint.h>
 
-typedef uint8_t uint8;
-typedef uint16_t uint16;
-typedef uint32_t uint32;
-typedef uint64_t uint64;
+typedef uint8_t u8;
+typedef uint16_t u16;
+typedef uint32_t u32;
+typedef uint64_t u64;
 
-typedef int8_t int8;
-typedef int16_t int16;
-typedef int32_t int32;
-typedef int64_t int64;
+typedef int8_t s8;
+typedef int16_t s16;
+typedef int32_t s32;
+typedef int64_t s64;
 
-typedef float real32;
-typedef double real64;
+typedef float f32;
+typedef double f64;
 
 #ifndef __cplusplus
 typedef enum { FALSE, TRUE } bool;
@@ -30,29 +30,16 @@ typedef enum { FALSE, TRUE } bool;
 
 #endif
 
- // HEAP_ALLOC & HEAP_FREE
-#if defined(_WIN32)
- 
-#if defined(WINDOWS_UWP_APP)
+#if defined(DENIS_WIN32)
 
-#define NOMINMAX
-#define WIN32_LEAN_AND_MEAN
-#include "windows.h"
+#define HEAP_ALLOC(size) VirtualAlloc(0, size, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE)
+#define HEAP_FREE(pointer) VirtualFree(pointer, 0, MEM_RELEASE)
 
-#define HEAP_ALLOC(size) HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, size)
-#define HEAP_FREE(ptr) HeapFree(GetProcessHeap(), 0, ptr)
+#elif defined(DENIS_LINUX)
 
-#else
-//TODO(denis): do I want to do it this way?
-#include "denis_win32.h"
-#endif
- 
-#else
- 
-#include <stdlib.h>
 #define HEAP_ALLOC(size) malloc(size)
 #define HEAP_FREE(pointer) free(pointer)
- 
+
 #endif
 
 //TODO(denis): dunno if this should be here, also might want this to be more featured
@@ -61,15 +48,17 @@ typedef enum { FALSE, TRUE } bool;
 	do							\
 	{							\
 	  if (!(x))					\
-		  *(int8*)0 = 0;		\
+		  *(s8*)0 = 0;		\
 	} while(false)
 
 #else
 #define ASSERT(x)
 #endif
 
-#define KILOBYTE(num) ((num) * (uint64)1024)
-#define MEGABYTE(num) (KILOBYTE(num) * (uint64)1024)
-#define GIGABYTE(num) (MEGABYTE(num) * (uint64)1024)
+#define KILOBYTE(num) ((num) * (u64)1024)
+#define MEGABYTE(num) (KILOBYTE(num) * (u64)1024)
+#define GIGABYTE(num) (MEGABYTE(num) * (u64)1024)
+
+#define ARRAY_COUNT(array) (sizeof(array)/sizeof((array)[0]))
 
 #endif

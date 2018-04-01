@@ -9,10 +9,10 @@
 //TODO(denis): maybe this should be defined in denis_drawing.h?
 struct Bitmap
 {
-    uint32* pixels;
+    u32* pixels;
 
-    uint32 width;
-    uint32 height;
+    u32 width;
+    u32 height;
 };
 
 struct Controller
@@ -27,29 +27,29 @@ struct Controller
 
 struct Mouse
 {
-    Vector2 pos;
+    v2 pos;
 	
     bool leftPressed;
     bool leftWasPressed;
-    Vector2 leftClickStartPos;
+    v2 leftClickStartPos;
 
     bool rightPressed;
     bool rightWasPressed;
-    Vector2 rightClickStartPos;
+    v2 rightClickStartPos;
 };
 
 struct Touch
 {
     //TODO(denis): eventually make this hold 10 different points?
-    uint32 numActivePoints;
-    Vector2 points[5];
+    u32 numActivePoints;
+    v2 points[5];
 };
 
 struct Pen
 {
-    uint32 pressure;
-    uint32 x;
-    uint32 y;
+    u32 pressure;
+    u32 x;
+    u32 y;
     bool usingEraser;
 };
 
@@ -64,7 +64,8 @@ struct Input
 //NOTE(denis): this must be defined by the user program
 struct Memory;
 
-#define MAIN_UPDATE_CALL(name) void (name)(Memory* memory, Bitmap* screen, Input* input)
+#define APP_INIT_CALL(name) void (name)(Memory* memory, Bitmap* screen)
+#define APP_UPDATE_CALL(name) void (name)(Memory* memory, Bitmap* screen, Input* input)
 
 //TODO(denis): think of a better way to do this
 //NOTE: user of this header must provide a main.h file that contains the following:

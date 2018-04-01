@@ -3,16 +3,6 @@
 
 #include "denis_types.h"
 
-#define NOMINMAX
-#define Rectangle _Rectangle
-#include <windows.h>
-#undef Rectangle
-#undef near
-#undef far
-
-#define HEAP_ALLOC(size) VirtualAlloc(0, size, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE)
-#define HEAP_FREE(pointer) VirtualFree(pointer, 0, MEM_RELEASE);
-
 #include "denis_strings.h"
 
 //NOTE(denis): user must free the returned string
@@ -20,14 +10,14 @@ static char* showFileDialog(char *descriptionOfFile, char *fileExtension, bool r
 {
     char *result = 0;
 
-    const uint32 fileNameSize = 512;
+    const u32 fileNameSize = 512;
     char *fileNameBuffer = (char*)HEAP_ALLOC(fileNameSize);
     
     OPENFILENAME openFileName = {};
     openFileName.lStructSize = sizeof(OPENFILENAME);
 
     char filter[fileNameSize] = {};
-    uint32 stringIndex;
+    u32 stringIndex;
     for (stringIndex = 0; descriptionOfFile[stringIndex] != 0; ++stringIndex)
     {
 		filter[stringIndex] = descriptionOfFile[stringIndex];
@@ -36,7 +26,7 @@ static char* showFileDialog(char *descriptionOfFile, char *fileExtension, bool r
     ++stringIndex;
     filter[stringIndex++] = '*';
     filter[stringIndex++] = '.';
-    for (uint32 i = 0; fileExtension[i] != 0; ++i)
+    for (u32 i = 0; fileExtension[i] != 0; ++i)
     {
 		filter[stringIndex++] = fileExtension[i];
     }
@@ -80,7 +70,7 @@ static char* getProgramPathName()
     if (getFileNameResult != 0 && GetLastError() != ERROR_INSUFFICIENT_BUFFER)
     {
 		char filePath[MAX_PATH+1] = {};
-		uint32 indexOfLastSlash = 0;
+		u32 indexOfLastSlash = 0;
 		for (int i = 0; i < MAX_PATH && fileNameBuffer[i] != 0; ++i)
 		{
 			if (fileNameBuffer[i] == '\\')
