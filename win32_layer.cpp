@@ -250,9 +250,7 @@ LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, WPARAM w
 						POINT penPos = penInfo.pointerInfo.ptPixelLocationRaw;
 						ScreenToClient(windowHandle, &penPos);
 
-						_input.pen.x = penPos.x;
-						_input.pen.y = penPos.y;
-
+						_input.pen.pos = V2(penPos.x, penPos.y);
 						_input.pen.usingEraser = penInfo.penFlags & PEN_FLAG_ERASER;
 						
 						if (penInfo.penMask & PEN_MASK_PRESSURE)

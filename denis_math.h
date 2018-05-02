@@ -61,6 +61,7 @@ static inline f32 inverseSlope(v2 point1, v2 point2);
 static inline f32 magnitude(v2 v);
 static inline f32 magnitude(v3f v);
 
+static inline v2 normalize(v2 v);
 static inline v3f normalize(v3f vector);
 
 static inline f32 dot(v3f v1, v3f v2);
@@ -390,11 +391,29 @@ v2 operator*(v2 left, s32 right)
 	result.y = left.y * right;
 	return result;
 }
+v2 operator*(v2 left, u32 right)
+{
+	return left * (s32)right;
+}
+v2 operator*(v2 left, f32 right)
+{
+	v2 result;
+	result.x = (s32)(left.x * right);
+	result.y = (s32)(left.y * right);
+	return result;
+}
 v2 operator/(v2 left, s32 right)
 {
 	v2 result;
 	result.x = left.x / right;
 	result.y = left.y / right;
+	return result;
+}
+v2 operator/(v2 left, f32 right)
+{
+	v2 result;
+	result.x = (s32)(left.x / right);
+	result.y = (s32)(left.y / right);
 	return result;
 }
 
@@ -862,6 +881,16 @@ static inline f32 magnitude(v3f v)
 	return (f32)sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
 }
 
+static inline v2 normalize(v2 v)
+{
+	v2 result = {};
+
+	f32 vectorMagnitude = magnitude(v);
+	if (vectorMagnitude > 0.0f)
+		result = v/vectorMagnitude;
+	
+	return result;
+}
 static inline v3f normalize(v3f vector)
 {
 	v3f result = {};

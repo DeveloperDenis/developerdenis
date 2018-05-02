@@ -48,8 +48,7 @@ struct Touch
 struct Pen
 {
     u32 pressure;
-    u32 x;
-    u32 y;
+	v2 pos;
     bool usingEraser;
 };
 
@@ -79,12 +78,12 @@ struct Memory;
 //        -> static uint32 FPS_TARGET
 #if defined(DENIS_WIN32)
 
-#include "main.h"
+#include "../src/main.h"
 #define exportDLL extern "C" __declspec(dllexport)
 
 #elif defined(DENIS_LINUX)
 
-#include "../code/main.h"
+#include "../src/main.h"
 #define exportDLL
 #include "linux_layer.cpp"
 
