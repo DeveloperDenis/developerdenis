@@ -47,10 +47,9 @@ Temporary Items
 .apdisk
 *.h~
 *.c~
-tests/build.bat~
+tests/*
 *.obj
 tests/test.exe
-*.bat
 tests/test.c
 *.cpp~
 *.sh~
