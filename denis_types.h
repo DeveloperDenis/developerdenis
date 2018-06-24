@@ -40,6 +40,13 @@ typedef enum { FALSE, TRUE } bool;
 #define HEAP_ALLOC(size) malloc(size)
 #define HEAP_FREE(pointer) free(pointer)
 
+#else
+
+#include "stdlib.h"
+
+#define HEAP_ALLOC(size) malloc(size)
+#define HEAP_FREE(pointer) free(pointer)
+
 #endif
 
 //TODO(denis): dunno if this should be here, also might want this to be more featured

@@ -302,19 +302,12 @@ LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, WPARAM w
     return result;
 }
 
-void checkStaticSettings()
-{
-    if (STATIC_SETTINGS::WINDOW_TITLE == 0 || STATIC_SETTINGS::WINDOW_WIDTH == 0 ||
-		STATIC_SETTINGS::WINDOW_HEIGHT == 0 || STATIC_SETTINGS::DLL_FILE_NAME == 0 ||
-		STATIC_SETTINGS::FPS_TARGET == 0)
-    {
-		ASSERT(!"You must initialize STATIC_SETTINGS struct properly");
-    }
-}
-
 int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, int cmdShow)
-{
-    checkStaticSettings();
+{	
+#if defined(PROJECT_SETTINGS_OVERWRITTEN)
+	OutputDebugStringA("Project settings were overwritten\n");
+	setProjectSettings();
+#endif
 	
     WNDCLASSEX windowClass = {};
     windowClass.cbSize = sizeof(WNDCLASSEX);
@@ -331,18 +324,16 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, 
     }
 
     DWORD windowStyles = WS_OVERLAPPEDWINDOW|WS_VISIBLE;
-    if (!STATIC_SETTINGS::WINDOW_RESIZABLE)
+    if (!WINDOW_RESIZABLE)
     {
 		windowStyles = windowStyles ^ (WS_THICKFRAME | WS_MAXIMIZEBOX);
     }
 
-    RECT windowRect = {0, 0,
-					   (LONG)STATIC_SETTINGS::WINDOW_WIDTH,
-					   (LONG)STATIC_SETTINGS::WINDOW_HEIGHT};
+    RECT windowRect = {0, 0, (LONG)WINDOW_WIDTH, (LONG)WINDOW_HEIGHT};
     AdjustWindowRectEx(&windowRect, WS_OVERLAPPEDWINDOW, FALSE, 0);
 	
     HWND windowHandle =
-		CreateWindowEx(0, windowClass.lpszClassName, STATIC_SETTINGS::WINDOW_TITLE,
+		CreateWindowEx(0, windowClass.lpszClassName, WINDOW_TITLE,
 					   windowStyles,
 					   CW_USEDEFAULT, CW_USEDEFAULT,
 					   windowRect.right - windowRect.left, windowRect.bottom - windowRect.top,
@@ -360,7 +351,7 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, 
     //NOTE(denis): load in the dll and the functions we need from it
     //TODO(denis): for this project I haven't changed the working directory yet
     //TODO(denis): since the change in working directory, this CopyFile call doesn't work properly
-    CopyFile(STATIC_SETTINGS::DLL_FILE_NAME, "running.dll", FALSE);
+    CopyFile(DLL_FILE_NAME, "running.dll", FALSE);
     HMODULE mainDLL = LoadLibraryA("running.dll");
     if (!mainDLL)
     {
@@ -376,7 +367,7 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, 
 		return 1;
     }
 
-    FILETIME lastDLLTime = getFileWriteTime((char*)STATIC_SETTINGS::DLL_FILE_NAME);
+    FILETIME lastDLLTime = getFileWriteTime(DLL_FILE_NAME);
 
     //TODO(denis): should probably let the user set the size of this
     void* mainMemory = VirtualAlloc(0, GIGABYTE(1), MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE);
@@ -403,7 +394,7 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, 
 	
     while (_running)
     {
-		FILETIME currentWriteTime = getFileWriteTime((char*)STATIC_SETTINGS::DLL_FILE_NAME);
+		FILETIME currentWriteTime = getFileWriteTime(DLL_FILE_NAME);
 		if (CompareFileTime(&lastDLLTime, &currentWriteTime) == -1)
 		{
 			//NOTE(denis): the lock is used to prevent DLL reloading before the PDB file
@@ -415,7 +406,7 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, 
 			{
 				// lastDLLTime is earlier
 				FreeLibrary(mainDLL);
-				CopyFile(STATIC_SETTINGS::DLL_FILE_NAME, "running.dll", FALSE);
+				CopyFile(DLL_FILE_NAME, "running.dll", FALSE);
 				mainDLL = LoadLibraryA("running.dll");
 			    appUpdate = (appUpdateCallPtr)GetProcAddress(mainDLL, "appUpdateCall");
 			}
@@ -450,7 +441,7 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, 
 		//TODO(denis): probably don't do a busy loop
 		//NOTE(denis): the epsilon is an attempt to lessen the effects of random spikes
 		f32 epsilon = 0.01f;
-		while (timeMs < (f64)1/(f64)STATIC_SETTINGS::FPS_TARGET * 1000.0 - epsilon)
+		while (timeMs < (f64)1/(f64)FPS_TARGET * 1000.0 - epsilon)
 		{
 			QueryPerformanceCounter(&currentCounts);
 			timePassed = currentCounts.QuadPart - lastCounts.QuadPart;

@@ -66,25 +66,16 @@ struct Memory;
 #define APP_INIT_CALL(name) void (name)(Memory* memory, Bitmap* screen)
 #define APP_UPDATE_CALL(name) void (name)(Memory* memory, Bitmap* screen, Input* input)
 
-//TODO(denis): think of a better way to do this
-//NOTE: user of this header must provide a main.h file that contains the following:
-// - declaration of struct "Memory" that is used to store data between frames
-// - struct "STATIC_SETTINGS" that has members
-//        -> static char* WINDOW_TITLE
-//        -> static uint32 WINDOW_WIDTH
-//        -> static uint32 WINDOW_HEIGHT
-//        -> static bool WINDOW_RESIZABLE
-//        -> static char* DLL_FILE_NAME
-//        -> static uint32 FPS_TARGET
+#include "project_settings.h"
+
 #if defined(DENIS_WIN32)
 
-#include "../src/main.h"
 #define exportDLL extern "C" __declspec(dllexport)
 
 #elif defined(DENIS_LINUX)
 
-#include "../src/main.h"
 #define exportDLL
+//TODO(denis): the linux layer does not currently support dynamic loading of code
 #include "linux_layer.cpp"
 
 #endif

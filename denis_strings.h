@@ -187,6 +187,7 @@ static inline char* duplicateString(char *string)
 		{
 			result[i] = string[i];
 		}
+		result[numChars] = 0;
 	}
 
 	return result;
