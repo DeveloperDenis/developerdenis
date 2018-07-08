@@ -60,7 +60,8 @@ int main(int argc, char** argv)
 		}
 		else if (stringsEqualIgnoreCase(tokens[0], "WINDOW_RESIZABLE"))
 		{
-			windowResizable = stringsEqualIgnoreCase(tokens[1], "true") ? true : false;
+			char* booleanString = trimString(tokens[1]);
+			windowResizable = stringStartsWith(booleanString, "true") ? true : false;
 		}
 		else if (stringsEqualIgnoreCase(tokens[0], "DLL_FILE_NAME"))
 		{

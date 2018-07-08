@@ -116,128 +116,113 @@ static inline void drawPoint(Bitmap* buffer, v2 point, u32 colour)
 	drawPoint(buffer, point.x, point.y, colour);
 }
 
-//TODO(denis): some things need to be fixed/added
-// - add line width parameter
-// - for line widths, need to take into account the slope when deciding how to widen line
-// - also this is probably overly verbose and inefficient
-// if this is deemed too slow, look into "Bresenham's line algorithm"
-static void drawLine(Bitmap* buffer, v2 point1, v2 point2, u32 colour)
+//NOTE(denis): Bresenham's algorithm for line drawing, optimized to only use integer values
+static void drawLine(Bitmap* surface, v2 p1, v2 p2, u32 colour)
 {
-	v2 startPoint;
-	v2 endPoint;
-	
-	s32 rise = point2.y - point1.y;
-	s32 run = point2.x - point1.x;
+	s32 rise = p2.y - p1.y;
+	s32 run = p2.x - p1.x;
 
-	f32 slope;
-	
-	if (ABS_VALUE(rise) > ABS_VALUE(run))
+	//NOTE(denis): special horizontal line case
+	if (rise == 0)
 	{
-		if (point1.y < point2.y)
+		s32 x1 = p1.x;
+		s32 x2 = p2.x;
+
+		if (x2 < x1)
 		{
-			startPoint = point1;
-			endPoint = point2;
+			x1 = p2.x;
+			x2 = p1.x;
 		}
-		else
-		{
-			startPoint = point2;
-			endPoint = point1;
-		}
-
-		if (startPoint.y >= (s32)buffer->height || endPoint.y < 0)
-			return;
-
-		u32 startY = MAX(startPoint.y, 0);
-		u32 endY = MIN(endPoint.y, (s32)buffer->height);
-
-		rise = endPoint.y - startPoint.y;
-		run = endPoint.x - startPoint.x;
-
-		if (run == 0)
-			slope = 1.0f;
-		else
-			slope = (f32)rise/(f32)run;
 		
-		for (u32 y = startY; y < endY; ++y)
+		for (s32 x = x1; x < x2; ++x)
 		{
-			s32 x;
-			if (slope == 1.0f)
+			drawPoint(surface, x, p1.y, colour);
+		}
+		
+		return;
+	}
+
+	//NOTE(denis): special vertical line case
+	if (run == 0)
+	{
+		s32 y1 = p1.y;
+		s32 y2 = p2.y;
+
+		if (y2 < y1)
+		{
+			y1 = p2.y;
+			y2 = p1.y;
+		}
+		
+		for (s32 y = y1; y < y2; ++y)
+		{
+			drawPoint(surface, p1.x, y, colour);
+		}
+
+		return;
+	}
+
+	//NOTE(denis): typical line cases
+	f32 m = (f32)rise / (f32)run;
+	s32 stepValue = m >= 0.0f ? 1 : -1;
+	
+	s32 offset = 0;
+
+	v2 startP = p1;
+	v2 endP = p2;
+	
+	if (ABS_VALUE(rise) > ABS_VALUE(run)) // vertical line
+	{
+		s32 delta = ABS_VALUE(run) * 2;
+		s32 threshold = ABS_VALUE(rise);
+		s32 thresholdIncrement = threshold * 2;
+
+		if (p2.y < p1.y)
+		{
+			startP = p2;
+			endP = p1;
+		}
+
+	    s32 x = startP.x;
+		
+		for (s32 y = startP.y; y < endP.y; ++y)
+		{
+			drawPoint(surface, x, y, colour);
+
+			offset += delta;
+			if (offset >= threshold)
 			{
-				x = startPoint.x;
+				x += stepValue;
+				threshold += thresholdIncrement;
 			}
-			else
+		}
+		
+	}
+	else // horizontal line
+	{
+		s32 delta = ABS_VALUE(rise) * 2;
+		s32 threshold = ABS_VALUE(run);
+		s32 thresholdIncrement = threshold*2;
+		
+		if (p2.x < p1.x)
+		{
+			startP = p2;
+			endP = p1;
+		}
+
+		s32 y = startP.y;
+
+		for (s32 x = startP.x; x < endP.x; ++x)
+		{
+			drawPoint(surface, x, y, colour);
+
+			offset += delta;
+			if (offset >= threshold)
 			{
-				x = (s32)((f32)(y - startPoint.y)/slope) + startPoint.x;
+				y += stepValue;
+				threshold += thresholdIncrement;
 			}
-
-			if (x > 0 && x < (s32)buffer->width)
-				*(buffer->pixels + y*buffer->width + x) = colour;
 		}
-	}
-	else
-	{
-		if (point1.x < point2.x)
-		{
-			startPoint = point1;
-			endPoint = point2;
-		}
-		else
-		{
-			startPoint = point2;
-			endPoint = point1;
-		}
-
-		if (startPoint.x >= (s32)buffer->width || endPoint.x < 0)
-			return;
-
-		u32 startX = MAX(startPoint.x, 0);
-		u32 endX = MIN(endPoint.x, (s32)buffer->width);
-	
-		rise = endPoint.y - startPoint.y;
-		run = endPoint.x - startPoint.x;
-	
-		slope = (f32)rise/(f32)run;
-		
-		for (u32 x = startX; x < endX; ++x)
-		{
-			s32 y = (s32)(slope*(x - startPoint.x)) + startPoint.y;
-		
-			if (y > 0 && y < (s32)buffer->height)
-				*(buffer->pixels + y*buffer->width + x) = colour;
-		}
-	}
-}
-//TODO(denis): still needs some work, there are obvious problems with wide lines
-static inline void drawLine(Bitmap* buffer, v2 point1, v2 point2, u32 width, u32 colour)
-{
-	s32 rise = point2.y - point1.y;
-	s32 run = point2.x - point1.x;
-
-	v2 baseOffset;
-	if (ABS_VALUE(rise) > ABS_VALUE(run))
-	{
-		baseOffset = V2(1, 0);
-	}
-	else
-	{
-		baseOffset = V2(0, 1);
-	}
-
-	u32 halfPoint = (u32)((f32)width/2.0f + 0.5f);
-	for (u32 i = 0; i < width; ++i)
-	{
-		v2 offset = V2(0, 0);
-		
-		if (i < halfPoint)
-		{
-		    offset = baseOffset*(-(s32)i);
-		}
-		else if (i > halfPoint)
-		{
-		    offset = baseOffset*(i - halfPoint);
-		}
-
-		drawLine(buffer, point1 + offset, point2 + offset, colour);
 	}
 }
 
