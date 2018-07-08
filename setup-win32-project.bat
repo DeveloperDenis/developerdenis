@@ -14,6 +14,8 @@ copy ..\developerdenis\build.bat src\
 
 git clone https://github.com/DeveloperDenis/developerdenis.git
 
+goto END
+
 :PROJECT_NAME_ERROR
 echo Error: must specify a project name
 goto END
