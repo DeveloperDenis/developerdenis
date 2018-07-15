@@ -76,6 +76,10 @@ static inline v4f cross(v4f v1, v4f v2);
 
 union v2
 {
+	v2();
+	v2(s32 x, s32 y);
+	v2(v2f v);
+	
 	struct
 	{
 		s32 x;
@@ -91,6 +95,10 @@ union v2
 
 union v2f
 {
+	v2f();
+	v2f(f32 x, f32 y);
+	v2f(v2 v);
+	
 	struct
 	{
 		f32 x;
@@ -106,6 +114,10 @@ union v2f
 
 union v3
 {
+	v3();
+	v3(s32 x, s32 y, s32 z);
+	v3(v2 v, s32 z);
+
 	struct
 	{
 		s32 x;
@@ -133,6 +145,10 @@ union v3
 
 union v3f
 {
+	v3f();
+	v3f(f32 x, f32 y, f32 z);
+	v3f(v4f v);
+	
 	struct
 	{
 		f32 x;
@@ -175,6 +191,11 @@ union v3f
 
 union v4f
 {
+	v4f();
+	v4f(f32 x, f32 y, f32 z);
+	v4f(f32 x, f32 y, f32 z, f32 w);
+	v4f(v3f v, f32 w);
+	
 	struct
 	{
 		f32 x;
@@ -297,73 +318,99 @@ struct Rect2f
 //---------------------------------------------------------------------------
 // Vector Constructors
 
-static inline v2 V2(s32 x, s32 y)
+v2::v2()
 {
-	v2 result = {x, y};
-	return result;
+	this->x = x;
+	this->y = y;
 }
-static inline v2 V2(v2f v2f)
+v2::v2(s32 x, s32 y)
 {
-	v2 result = {(s32)v2f.x, (s32)v2f.y};
-	return result;
+	this->x = x;
+	this->y = y;
 }
-
-static inline v2f V2f(f32 x, f32 y)
+v2::v2(v2f v)
 {
-	v2f result = {x, y};
-	return result;
-}
-static inline v2f V2f(v2 v2)
-{
-	v2f result = {(f32)v2.x, (f32)v2.y};
-	return result;
+	this->x = (s32)v.x;
+	this->y = (s32)v.y;
 }
 
-static inline v3 V3(s32 x, s32 y, s32 z)
+v2f::v2f()
 {
-	v3 result;
-	result.x = x;
-	result.y = y;
-	result.z = z;
-	return result;
+	this->x = 0.0f;
+	this->y = 0.0f;
 }
-static inline v3 V3(v2 v, s32 z)
+v2f::v2f(f32 x, f32 y)
 {
-	v3 result = V3(v.x, v.y, z);
-	return result;
+	this->x = x;
+	this->y = y;
 }
-
-static inline v3f V3f(f32 x, f32 y, f32 z)
+v2f::v2f(v2 v)
 {
-	v3f result;
-	result.x = x;
-	result.y = y;
-	result.z = z;
-	return result;
-}
-static inline v3f V3f(v4f v)
-{
-	return V3f(v.x, v.y, v.z);
+	this->x = (f32)v.x;
+	this->y = (f32)v.y;
 }
 
-static inline v4f V4f(f32 x, f32 y, f32 z, f32 w)
+v3::v3()
 {
-	v4f result;
-	result.x = x;
-	result.y = y;
-	result.z = z;
-	result.w = w;
-	return result;
+	this->x = 0;
+	this->y = 0;
+	this->z = 0;
 }
-static inline v4f V4f(f32 x, f32 y, f32 z)
+v3::v3(s32 x, s32 y, s32 z)
 {
-	v4f result = V4f(x, y, z, 1.0f);
-	return result;
+	this->x = x;
+	this->y = y;
+	this->z = z;
 }
-static inline v4f V4f(v3f v, f32 w)
+v3::v3(v2 v, s32 z)
 {
-	v4f result = V4f(v.x, v.y, v.z, w);
-	return result;
+	this->x = v.x;
+	this->y = v.y;
+	this->z = z;
+}
+
+v3f::v3f()
+{
+	this->x = 0.0f;
+	this->y = 0.0f;
+	this->z = 0.0f;
+}
+v3f::v3f(f32 x, f32 y, f32 z)
+{
+	this->x = x;
+	this->y = y;
+	this->z = z;
+}
+v3f::v3f(v4f v)
+{
+	this->x = v.x;
+	this->y = v.y;
+	this->z = v.z;
+}
+
+v4f::v4f() : x(0.0f), y(0.0f), z(0.0f), w(0.0f)
+{
+}
+v4f::v4f(f32 x, f32 y, f32 z)
+{
+	this->x = x;
+	this->y = y;
+	this->z = z;
+	this->w = 1.0f;
+}
+v4f::v4f(f32 x, f32 y, f32 z, f32 w)
+{
+	this->x = x;
+	this->y = y;
+	this->z = z;
+	this->w = w;
+}
+v4f::v4f(v3f v, f32 w)
+{
+	this->x = v.x;
+	this->y = v.y;
+	this->z = v.z;
+	this->w = w;
 }
 
 
@@ -574,7 +621,7 @@ static inline v4f operator/(v4f left, f32 scalar)
 static inline Matrix4f getIdentityMatrix4f()
 {
 	Matrix4f result = {};
-	result.currentScale = V3f(1.0f, 1.0f, 1.0f);
+	result.currentScale = v3f(1.0f, 1.0f, 1.0f);
 
 	result[0][0] = 1.0f;
 	result[1][1] = 1.0f;
@@ -658,7 +705,7 @@ static inline v4f operator*(Matrix4f left, v4f right)
 }
 static inline v3f operator*(Matrix4f left, v3f right)
 {
-	v4f result = left * V4f(right, 1.0f);
+	v4f result = left * v4f(right, 1.0f);
 	return result.xyz;
 }
 
@@ -698,7 +745,7 @@ void Matrix4f::setTranslation(v3f translation)
 
 v3f Matrix4f::getTranslation()
 {
-	v3f result = V3f(elements[0][3], elements[1][3], elements[2][3]);
+	v3f result(elements[0][3], elements[1][3], elements[2][3]);
 	return result;
 }
 
@@ -720,7 +767,7 @@ void Matrix4f::setScale(f32 x, f32 y, f32 z)
 	elements[1][1] *= y;
 	elements[2][2] *= z;
 
-	currentScale = V3f(x, y, z);
+	currentScale = v3f(x, y, z);
 }
 void Matrix4f::setScale(v3f newScale)
 {
@@ -742,7 +789,7 @@ void Matrix4f::setRotation(f32 xAngle, f32 yAngle, f32 zAngle)
 {
 	v3f savedTranslation = getTranslation();
 	v3f savedScale = currentScale;
-	currentScale = V3f(1.0f, 1.0f, 1.0f);
+	currentScale = v3f(1.0f, 1.0f, 1.0f);
 
 	Matrix4f xRotation = getXRotationMatrix(xAngle);
 	Matrix4f yRotation = getYRotationMatrix(yAngle);
@@ -777,8 +824,8 @@ void Matrix4f::rotate(f32 xAngle, f32 yAngle, f32 zAngle)
 
 Rect2::Rect2(s32 x, s32 y, s32 width, s32 height)
 {
-	min = V2(x, y);
-	max = V2(x + width, y LOWER_BY height);
+	min(x, y);
+	max(x + width, y LOWER_BY height);
 }
 Rect2::Rect2(v2 min, v2 max)
 {
@@ -807,8 +854,8 @@ void Rect2::setPos(v2 newPos)
 
 Rect2f::Rect2f(f32 x, f32 y, f32 width, f32 height)
 {
-	min = V2f(x, y);
-	max = V2f(x + width, y LOWER_BY height);
+	min(x, y);
+	max(x + width, y LOWER_BY height);
 }
 Rect2f::Rect2f(v2f min, v2f max)
 {
@@ -924,10 +971,10 @@ static inline v3f cross(v3f v1, v3f v2)
 }
 static inline v4f cross(v4f v1, v4f v2)
 {
-	v3f reducedVector1 = V3f(v1.x, v1.y, v1.z);
-	v3f reducedVector2 = V3f(v2.x, v2.y, v2.z);
+	v3f reducedVector1(v1.x, v1.y, v1.z);
+	v3f reducedVector2(v2.x, v2.y, v2.z);
 
-	v4f result = V4f(cross(reducedVector1, reducedVector2), 1.0f);
+	v4f result(cross(reducedVector1, reducedVector2), 1.0f);
 	return result;
 }
 
@@ -939,7 +986,7 @@ static inline f32 dot(v3f v1, v3f v2)
 
 static inline v3f hadamard(v3f v1, v3f v2)
 {
-	v3f result = V3f(v1.x*v2.x, v1.y*v2.y, v1.z*v2.z);
+	v3f result(v1.x*v2.x, v1.y*v2.y, v1.z*v2.z);
 	return result;
 }
 

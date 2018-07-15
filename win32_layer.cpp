@@ -304,11 +304,6 @@ LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, WPARAM w
 
 int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, int cmdShow)
 {	
-#if defined(PROJECT_SETTINGS_OVERWRITTEN)
-	OutputDebugStringA("Project settings were overwritten\n");
-	setProjectSettings();
-#endif
-	
     WNDCLASSEX windowClass = {};
     windowClass.cbSize = sizeof(WNDCLASSEX);
     windowClass.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
@@ -316,6 +311,9 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, 
     windowClass.hInstance = instance;
     windowClass.hCursor = LoadCursor(0, IDC_ARROW);
     windowClass.lpszClassName = "win32WindowClass";
+
+	//TODO(denis): is this needed, or wanted?
+    //windowClass.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 	
     if (!RegisterClassEx(&windowClass))
     {
