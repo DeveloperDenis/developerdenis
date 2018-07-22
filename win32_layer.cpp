@@ -250,7 +250,7 @@ LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, WPARAM w
 						POINT penPos = penInfo.pointerInfo.ptPixelLocationRaw;
 						ScreenToClient(windowHandle, &penPos);
 
-						_input.pen.pos = V2(penPos.x, penPos.y);
+						_input.pen.pos = v2(penPos.x, penPos.y);
 						_input.pen.usingEraser = penInfo.penFlags & PEN_FLAG_ERASER;
 						
 						if (penInfo.penMask & PEN_MASK_PRESSURE)
@@ -380,8 +380,8 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, 
     //SetProcessDpiAwareness(PROCESS_SYSTEM_DPI_AWARE);
 
     Mouse oldMouse = {};
-    _input.mouse.leftClickStartPos = V2(-1, -1);
-    _input.mouse.rightClickStartPos = V2(-1, -1);
+    _input.mouse.leftClickStartPos = v2(-1, -1);
+    _input.mouse.rightClickStartPos = v2(-1, -1);
 
 	Bitmap screen;
 	screen.pixels = (u32*)_backBuffer.data;
@@ -466,12 +466,12 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, 
 		if (disableLeftWasPressed)
 		{
 			_input.mouse.leftWasPressed = false;
-			_input.mouse.leftClickStartPos = V2(-1, -1);
+			_input.mouse.leftClickStartPos = v2(-1, -1);
 		}
 		if (disableRightWasPressed)
 		{
 			_input.mouse.rightWasPressed = false;
-			_input.mouse.rightClickStartPos = V2(-1, -1);
+			_input.mouse.rightClickStartPos = v2(-1, -1);
 		}
     }
 	

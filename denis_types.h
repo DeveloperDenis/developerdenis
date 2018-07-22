@@ -30,24 +30,10 @@ typedef enum { FALSE, TRUE } bool;
 
 #endif
 
-#if defined(DENIS_WIN32)
+#include <stdlib.h>
 
-#define HEAP_ALLOC(size) VirtualAlloc(0, size, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE)
-#define HEAP_FREE(pointer) VirtualFree(pointer, 0, MEM_RELEASE)
-
-#elif defined(DENIS_LINUX)
-
-#define HEAP_ALLOC(size) malloc(size)
+#define HEAP_ALLOC(size) calloc(1, size)
 #define HEAP_FREE(pointer) free(pointer)
-
-#else
-
-#include "stdlib.h"
-
-#define HEAP_ALLOC(size) malloc(size)
-#define HEAP_FREE(pointer) free(pointer)
-
-#endif
 
 //TODO(denis): dunno if this should be here, also might want this to be more featured
 #if defined(DEBUG)

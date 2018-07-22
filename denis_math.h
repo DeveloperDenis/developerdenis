@@ -34,6 +34,8 @@
 #define CLAMP_RANGE(value, min, max) ((value) > (min) ? MIN(value, max) : (min))
 #define CLAMP_MAX(value, max) MAX(value, max)
 
+#define DEGREE_TO_RAD(angle) ((f32)(angle)*(f32)M_PI / 180.0f)
+
 //---------------------------------------------------------------------------
 // Type Declarations:
 union v2;
@@ -195,6 +197,7 @@ union v4f
 	v4f(f32 x, f32 y, f32 z);
 	v4f(f32 x, f32 y, f32 z, f32 w);
 	v4f(v3f v, f32 w);
+	v4f(v3f v);
 	
 	struct
 	{
@@ -411,6 +414,13 @@ v4f::v4f(v3f v, f32 w)
 	this->y = v.y;
 	this->z = v.z;
 	this->w = w;
+}
+v4f::v4f(v3f v)
+{
+	this->x = v.x;
+	this->y = v.y;
+	this->z = v.z;
+	this->w = 1.0f;
 }
 
 
@@ -824,8 +834,8 @@ void Matrix4f::rotate(f32 xAngle, f32 yAngle, f32 zAngle)
 
 Rect2::Rect2(s32 x, s32 y, s32 width, s32 height)
 {
-	min(x, y);
-	max(x + width, y LOWER_BY height);
+    min = v2(x, y);
+    max = v2(x + width, y LOWER_BY height);
 }
 Rect2::Rect2(v2 min, v2 max)
 {
@@ -854,8 +864,8 @@ void Rect2::setPos(v2 newPos)
 
 Rect2f::Rect2f(f32 x, f32 y, f32 width, f32 height)
 {
-	min(x, y);
-	max(x + width, y LOWER_BY height);
+	min = v2f(x, y);
+	max = v2f(x + width, y LOWER_BY height);
 }
 Rect2f::Rect2f(v2f min, v2f max)
 {
