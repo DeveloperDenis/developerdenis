@@ -3,6 +3,15 @@
 
 #include "denis_math.h"
 
+static inline u32 packColour(v3f colour)
+{
+	u8 r = (u8)(0xFF * colour.r);
+	u8 g = (u8)(0xFF * colour.g);
+	u8 b = (u8)(0xFF * colour.b);
+
+	return 0xFF000000 | (r << 16) | (g << 8) | b;
+}
+
 //NOTE(denis): draws the bitmap onto the buffer with x and y specified in rect
 // clips bitmap width and height to rect width & rect height
 //TODO(denis): doesn't draw partial alpha, only full or none

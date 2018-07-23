@@ -30,9 +30,7 @@
 
 #define ABS_VALUE(x) ((x) < 0 ? -(x) : (x))
 
-#define CLAMP_MIN(value, min) MIN(value, min)
 #define CLAMP_RANGE(value, min, max) ((value) > (min) ? MIN(value, max) : (min))
-#define CLAMP_MAX(value, max) MAX(value, max)
 
 #define DEGREE_TO_RAD(angle) ((f32)(angle)*(f32)M_PI / 180.0f)
 
@@ -709,7 +707,12 @@ static inline v4f operator*(Matrix4f left, v4f right)
 	result.x = left[0][0]*right.x + left[0][1]*right.y + left[0][2]*right.z + left[0][3]*right.w;
 	result.y = left[1][0]*right.x + left[1][1]*right.y + left[1][2]*right.z + left[1][3]*right.w;
 	result.z = left[2][0]*right.x + left[2][1]*right.y + left[2][2]*right.z + left[2][3]*right.w;
-	result.w = left[3][0]*right.x + left[3][1]*right.y + left[3][2]*right.z + left[3][3]*right.w;
+    result.w = left[3][0]*right.x + left[3][1]*right.y + left[3][2]*right.z + left[3][3]*right.w;
+
+	if (result.w != 1.0f)
+	{
+		result = result/result.w;
+	}
 	
 	return result;
 }
@@ -806,7 +809,14 @@ void Matrix4f::setRotation(f32 xAngle, f32 yAngle, f32 zAngle)
 	Matrix4f zRotation = getZRotationMatrix(zAngle);
 	Matrix4f transformation = zRotation * yRotation * xRotation;
 
-	*this = transformation;
+	for (u32 i = 0; i < 4; ++i)
+	{
+		for (u32 j = 0; j < 4; ++j)
+		{
+			elements[i][j] = transformation.elements[i][j];
+		}
+	}
+	
 	setTranslation(savedTranslation);
 	setScale(savedScale);
 }
@@ -822,7 +832,7 @@ void Matrix4f::rotate(f32 xAngle, f32 yAngle, f32 zAngle)
 	Matrix4f yRotation = getYRotationMatrix(yAngle);
 	Matrix4f zRotation = getZRotationMatrix(zAngle);
 	Matrix4f transformation = zRotation * yRotation * xRotation;
-		
+	
 	*this = operator*(transformation, *this);
 		
 	setTranslation(savedTranslation);
@@ -893,6 +903,15 @@ void Rect2f::setPos(v2f newPos)
 
 //--------------------------------------------------------------------------
 // General Function Definitions
+
+static inline v3f clampV3f(v3f v, f32 min, f32 max)
+{
+	v3f result = v;
+	result.x = CLAMP_RANGE(v.x, min, max);
+	result.y = CLAMP_RANGE(v.y, min, max);
+	result.z = CLAMP_RANGE(v.z, min, max);
+	return result;
+}
 
 #if defined(UP_POSITIVE_Y)
 static inline bool pointInRect(v2 point, Rect2 rect)
