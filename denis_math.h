@@ -147,6 +147,7 @@ union v3f
 {
 	v3f();
 	v3f(f32 x, f32 y, f32 z);
+	v3f(v2f, f32);
 	v3f(v4f v);
 	
 	struct
@@ -380,6 +381,12 @@ v3f::v3f(f32 x, f32 y, f32 z)
 {
 	this->x = x;
 	this->y = y;
+	this->z = z;
+}
+v3f::v3f(v2f v, f32 z)
+{
+	this->x = v.x;
+	this->y = v.y;
 	this->z = z;
 }
 v3f::v3f(v4f v)

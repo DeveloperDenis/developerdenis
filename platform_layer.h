@@ -60,6 +60,12 @@ struct Input
     Controller controller;
 };
 
+//NOTE(denis): platform functions for the app to use
+struct Platform
+{
+	//TODO(denis): add things like thread creation, etc.
+};
+
 //NOTE(denis): this must be defined by the user program
 struct Memory;
 
