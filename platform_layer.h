@@ -4,15 +4,16 @@
 #include "denis_types.h"
 #include "denis_math.h"
 
-//TODO(denis): this doesn't take into account that the pitch may be different from the width of
-// the image
 //TODO(denis): maybe this should be defined in denis_drawing.h?
 struct Bitmap
 {
     u32* pixels;
 
-    u32 width;
+	u32 width;
     u32 height;
+
+	// number of bytes in a row
+	u32 stride;
 };
 
 struct Controller
@@ -60,17 +61,34 @@ struct Input
     Controller controller;
 };
 
+#define PLATFORM_MEDIA_PLAY_FILE(name) void (name)(char* fileName)
+typedef PLATFORM_MEDIA_PLAY_FILE(*mediaPlayFilePtr);
+
+enum MediaPlayerState
+{
+	MEDIA_INVALID,
+	MEDIA_PLAYING,
+	MEDIA_PAUSED,
+	MEDIA_FINISHED
+};
+#define PLATFORM_MEDIA_GET_STATE(name) MediaPlayerState (name)()
+typedef PLATFORM_MEDIA_GET_STATE(*mediaGetStatePtr);
+
 //NOTE(denis): platform functions for the app to use
 struct Platform
 {
 	//TODO(denis): add things like thread creation, etc.
+	
+	mediaPlayFilePtr mediaPlayFile;
+	mediaGetStatePtr mediaGetState;
 };
 
 //NOTE(denis): this must be defined by the user program
 struct Memory;
 
-#define APP_INIT_CALL(name) void (name)(Memory* memory, Bitmap* screen)
-#define APP_UPDATE_CALL(name) void (name)(Memory* memory, Bitmap* screen, Input* input)
+//TODO(denis): change this to just "APP_INIT"?
+#define APP_INIT_CALL(name) void (name)(Platform platform, Memory* mem, Bitmap* screen)
+#define APP_UPDATE_CALL(name) void (name)(Platform platform, Memory* mem, Bitmap* screen, Input* input, f32 t)
 
 #include "project_settings.h"
 

@@ -3,6 +3,19 @@
 
 #include "denis_math.h"
 
+#define GET_PIXEL(bitmap, x, y) ((u32*)((u8*)(bitmap)->pixels + (y)*(bitmap)->stride) + (x))
+
+static inline v4f unpackColour(u32 colour)
+{
+	v4f result;
+	result.r = (f32)((colour & 0x00FF0000) >> 16) / 255.0f;
+	result.g = (f32)((colour & 0x0000FF00) >> 8) / 255.0f;
+	result.b = (f32)(colour & 0x000000FF) / 255.0f;
+	result.a = (f32)(colour >> 24) / 255.0f;
+
+	return result;
+}
+
 static inline u32 packColour(v3f colour)
 {
 	u8 r = (u8)(0xFF * colour.r);
@@ -12,37 +25,67 @@ static inline u32 packColour(v3f colour)
 	return 0xFF000000 | (r << 16) | (g << 8) | b;
 }
 
+static inline void drawPoint(Bitmap* buffer, s32 x, s32 y, u32 colour)
+{
+	if (x < 0 || x >= (s32)buffer->width || y < 0 || y >= (s32)buffer->height)
+		return;
+
+	*(GET_PIXEL(buffer, x, y)) = colour;
+}
+static inline void drawPoint(Bitmap* buffer, v2 point, u32 colour)
+{
+	drawPoint(buffer, point.x, point.y, colour);
+}
+
 //NOTE(denis): draws the bitmap onto the buffer with x and y specified in rect
 // clips bitmap width and height to rect width & rect height
-//TODO(denis): doesn't draw partial alpha, only full or none
-static void drawBitmap(Bitmap* buffer, Bitmap* bitmap, Rect2 rect)
+static void drawBitmap(Bitmap* buffer, Bitmap* bitmap, v2 pos)
 {
-	s32 startY = MAX(rect.getTop(), 0);
-	s32 endY = MIN(rect.getBottom(), (s32)buffer->height);
+	s32 startY = MAX(pos.y, 0);
+	s32 endY = MIN(pos.y + bitmap->height, (s32)buffer->height);
 
-	s32 startX = MAX(rect.getLeft(), 0);
-	s32 endX = MIN(rect.getRight(), (s32)buffer->width);
+	s32 startX = MAX(pos.x, 0);
+	s32 endX = MIN(pos.x + bitmap->width, (s32)buffer->width);
 
 	u32 row = 0;
-	for (s32 y = startY; y < endY && row < bitmap->height; ++y, ++row)
+	for (s32 y = startY; y < endY; ++y, ++row)
 	{
 		u32 col = 0;
-		for (s32 x = startX; x < endX && col < bitmap->width; ++x, ++col)
+		for (s32 x = startX; x < endX; ++x, ++col)
 		{
-			u32* inPixel = bitmap->pixels + row*bitmap->width + col;
-			u32* outPixel = buffer->pixels + y*buffer->width + x;
-			
-			if (((*inPixel) & (0xFF << 24)) != 0)
+			u32* inPixel = GET_PIXEL(bitmap, col, row);
+			u32* outPixel = GET_PIXEL(buffer, x, y);
+
+			//TODO(denis): these conditions are needed to get the alpha blending at a decent speed
+			// I should look into improving the alpha blending computation
+			if (((*inPixel) & 0xFF000000) == 0)
+				continue;
+			else if (((*inPixel) & 0xFF000000) == 0xFF000000)
 			{
 				*outPixel = *inPixel;
+				continue;
 			}
+			
+			// basic linear alpha blending
+
+			v4f srcColour = unpackColour(*inPixel);
+			v4f destColour = unpackColour(*outPixel);
+
+			v3f resultColour = destColour.xyz*(1.0f - srcColour.a) + srcColour.xyz*srcColour.a;
+
+			u32 colour = packColour(resultColour);
+
+			*outPixel = colour;
 		}
 	}
 }
-static inline void drawBitmap(Bitmap* buffer, Bitmap* bitmap, v2 pos)
+static inline void drawBitmap(Bitmap* buffer, Bitmap* bitmap, u32 x, u32 y)
 {
-	Rect2 rect = Rect2(pos.x, pos.y, bitmap->width, bitmap->height);
-	drawBitmap(buffer, bitmap, rect);
+	drawBitmap(buffer, bitmap, v2(x, y));
+}
+static inline void drawBitmap(Bitmap* buffer, Bitmap* bitmap, Rect2 rect)
+{
+	drawBitmap(buffer, bitmap, rect.min);
 }
 
 static inline void fillBuffer(Bitmap* buffer, u32 colour)
@@ -51,7 +94,7 @@ static inline void fillBuffer(Bitmap* buffer, u32 colour)
 	{
 		for (u32 col = 0; col < buffer->width; ++col)
 		{
-			*(buffer->pixels + col + row*buffer->width) = colour;
+			drawPoint(buffer, col, row, colour);
 		}
 	}
 }
@@ -73,7 +116,7 @@ static void drawRect(Bitmap* buffer,
 	{
 		for (u32 col = startX; col < endX; ++col)
 		{
-			*(buffer->pixels + row*buffer->width + col) = colour;
+			drawPoint(buffer, col, row, colour);
 		}
 	}
 }
@@ -103,7 +146,7 @@ static void drawCircle(Bitmap* buffer, s32 x, s32 y, s32 radius, u32 colour)
 
 			if (sqrt(xDiff*xDiff + yDiff*yDiff) <= (f32)radius)
 			{
-				*(buffer->pixels + row*buffer->width + col) = colour;
+				drawPoint(buffer, col, row, colour);
 			}
 		}
 	}
@@ -113,17 +156,6 @@ static inline void drawCircle(Bitmap* buffer, v2 pos, s32 radius, u32 colour)
 	drawCircle(buffer, pos.x, pos.y, radius, colour);
 }
 
-static inline void drawPoint(Bitmap* buffer, s32 x, s32 y, u32 colour)
-{
-	if (x < 0 || x >= (s32)buffer->width || y < 0 || y >= (s32)buffer->height)
-		return;
-
-	*(buffer->pixels + y*buffer->width + x) = colour;
-}
-static inline void drawPoint(Bitmap* buffer, v2 point, u32 colour)
-{
-	drawPoint(buffer, point.x, point.y, colour);
-}
 
 //NOTE(denis): Bresenham's algorithm for line drawing, optimized to only use integer values
 static void drawLine(Bitmap* surface, v2 p1, v2 p2, u32 colour)

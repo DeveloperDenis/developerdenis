@@ -17,36 +17,36 @@ set includes=/I %denis_library% /I ../src/
 set files=..\src\main.cpp
 
 set settings_file="..\src\project.settings"
+set settings_output="..\src\project_settings.h"
 
 pushd ..\build\
 
-if exist ..\src\project.settings (
+if exist %settings_file% (
    echo Using user defined project settings
 
    ..\developerdenis\read_project_settings %settings_file%
    move project_settings.h ..\src\
-
 ) else (
    echo Using default project settings...
 
    REM For simplicity, this should probably be done by calling read_project_settings with no arguments
 
-   echo // THIS IS AN AUTO-GENERATED FILE, MODIFICATIONS IN THIS FILE WILL NOT BE PRESERVED > %settings_file%
-   echo. >> %settings_file%
-   
-   echo #if !defined(PROJECT_SETTINGS_H_^) >> %settings_file%
-   echo #define PROJECT_SETTINGS_H_ >> %settings_file%
-   echo. >> %settings_file%
-   
-   echo char* WINDOW_TITLE = "Default Title"; >> %settings_file%
-   echo u32 WINDOW_WIDTH = 800; >> %settings_file%
-   echo u32 WINDOW_HEIGHT = 600; >> %settings_file%
-   echo bool WINDOW_RESIZABLE = true; >> %settings_file%
-   echo char* DLL_FILE_NAME = "main.dll"; >> %settings_file%
-   echo u32 FPS_TARGET = 60; >> %settings_file%
+   echo // THIS IS AN AUTO-GENERATED FILE, MODIFICATIONS IN THIS FILE WILL NOT BE PRESERVED > %settings_output%
+   echo. >> %settings_output%
 
-   echo. >> %settings_file%
-   echo #endif >> %settings_file%
+   echo #if !defined(PROJECT_SETTINGS_H_^) >> %settings_output%
+   echo #define PROJECT_SETTINGS_H_ >> %settings_output%
+   echo. >> %settings_output%
+
+   echo char* WINDOW_TITLE = "Default Title"; >> %settings_output%
+   echo u32 WINDOW_WIDTH = 800; >> %settings_output%
+   echo u32 WINDOW_HEIGHT = 600; >> %settings_output%
+   echo bool WINDOW_RESIZABLE = true; >> %settings_output%
+   echo char* DLL_FILE_NAME = "main.dll"; >> %settings_output%
+   echo u32 FPS_TARGET = 60; >> %settings_output%
+
+   echo. >> %settings_output%
+   echo #endif >> %settings_output%
 )
 
 del *.pdb > NUL 2> NUL
