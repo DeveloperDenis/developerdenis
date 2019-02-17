@@ -32,14 +32,14 @@ static inline void drawPoint(Bitmap* buffer, s32 x, s32 y, u32 colour)
 
 	*(GET_PIXEL(buffer, x, y)) = colour;
 }
-static inline void drawPoint(Bitmap* buffer, v2 point, u32 colour)
+static inline void drawPoint(Bitmap* buffer, v2i point, u32 colour)
 {
 	drawPoint(buffer, point.x, point.y, colour);
 }
 
 //NOTE(denis): draws the bitmap onto the buffer with x and y specified in rect
 // clips bitmap width and height to rect width & rect height
-static void drawBitmap(Bitmap* buffer, Bitmap* bitmap, v2 pos)
+static void drawBitmap(Bitmap* buffer, Bitmap* bitmap, v2i pos)
 {
 	s32 startY = MAX(pos.y, 0);
 	s32 endY = MIN(pos.y + bitmap->height, (s32)buffer->height);
@@ -81,7 +81,7 @@ static void drawBitmap(Bitmap* buffer, Bitmap* bitmap, v2 pos)
 }
 static inline void drawBitmap(Bitmap* buffer, Bitmap* bitmap, u32 x, u32 y)
 {
-	drawBitmap(buffer, bitmap, v2(x, y));
+	drawBitmap(buffer, bitmap, v2i(x, y));
 }
 static inline void drawBitmap(Bitmap* buffer, Bitmap* bitmap, Rect2 rect)
 {
@@ -151,14 +151,14 @@ static void drawCircle(Bitmap* buffer, s32 x, s32 y, s32 radius, u32 colour)
 		}
 	}
 }
-static inline void drawCircle(Bitmap* buffer, v2 pos, s32 radius, u32 colour)
+static inline void drawCircle(Bitmap* buffer, v2i pos, s32 radius, u32 colour)
 {
 	drawCircle(buffer, pos.x, pos.y, radius, colour);
 }
 
 
 //NOTE(denis): Bresenham's algorithm for line drawing, optimized to only use integer values
-static void drawLine(Bitmap* surface, v2 p1, v2 p2, u32 colour)
+static void drawLine(Bitmap* surface, v2i p1, v2i p2, u32 colour)
 {
 	s32 rise = p2.y - p1.y;
 	s32 run = p2.x - p1.x;
@@ -209,8 +209,8 @@ static void drawLine(Bitmap* surface, v2 p1, v2 p2, u32 colour)
 	
 	s32 offset = 0;
 
-	v2 startP = p1;
-	v2 endP = p2;
+	v2i startP = p1;
+	v2i endP = p2;
 	
 	if (ABS_VALUE(rise) > ABS_VALUE(run)) // vertical line
 	{

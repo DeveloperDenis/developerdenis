@@ -28,28 +28,28 @@ struct Controller
 
 struct Mouse
 {
-    v2 pos;
+    v2i pos;
 	
     bool leftPressed;
     bool leftWasPressed;
-    v2 leftClickStartPos;
+    v2i leftClickStartPos;
 
     bool rightPressed;
     bool rightWasPressed;
-    v2 rightClickStartPos;
+    v2i rightClickStartPos;
 };
 
 struct Touch
 {
     //TODO(denis): eventually make this hold 10 different points?
     u32 numActivePoints;
-    v2 points[5];
+    v2i points[5];
 };
 
 struct Pen
 {
     u32 pressure;
-	v2 pos;
+	v2i pos;
     bool usingEraser;
 };
 

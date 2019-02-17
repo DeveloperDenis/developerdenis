@@ -36,9 +36,9 @@
 
 //---------------------------------------------------------------------------
 // Type Declarations:
-union v2;
+union v2i;
 union v2f;
-union v3;
+union v3i;
 union v3f;
 union v4f;
 
@@ -50,23 +50,23 @@ struct Rect2f;
 //----------------------------------------------------------------------------
 // Functions Declarations:
 
-static inline bool pointInRect(v2 point, Rect2 rect);
+static inline bool pointInRect(v2i point, Rect2 rect);
 
-static inline bool pointInCircle(v2 point, v2 pos, s32 radius);
+static inline bool pointInCircle(v2i point, v2i pos, s32 radius);
 static inline bool pointInCircle(v2f point, v2f pos, s32 radius);
 
-static inline f32 slope(v2 point1, v2 point2);
-static inline f32 inverseSlope(v2 point1, v2 point2);
+static inline f32 slope(v2i point1, v2i point2);
+static inline f32 inverseSlope(v2i point1, v2i point2);
 
-static inline f32 magnitude(v2 v);
+static inline f32 magnitude(v2i v);
 static inline f32 magnitude(v3f v);
 
-static inline v2 normalize(v2 v);
+static inline v2i normalize(v2i v);
 static inline v3f normalize(v3f vector);
 
 static inline f32 dot(v3f v1, v3f v2);
 
-static inline v3 cross(v3 v1, v3 v2);
+static inline v3i cross(v3i v1, v3i v2);
 static inline v3f cross(v3f v1, v3f v2);
 static inline v4f cross(v4f v1, v4f v2);
 
@@ -74,11 +74,11 @@ static inline v4f cross(v4f v1, v4f v2);
 //---------------------------------------------------------------------------
 // Vector types:
 
-union v2
+union v2i
 {
-	v2();
-	v2(s32 x, s32 y);
-	v2(v2f v);
+	v2i();
+	v2i(s32 x, s32 y);
+	v2i(v2f v);
 	
 	struct
 	{
@@ -97,7 +97,7 @@ union v2f
 {
 	v2f();
 	v2f(f32 x, f32 y);
-	v2f(v2 v);
+	v2f(v2i v);
 	
 	struct
 	{
@@ -112,11 +112,11 @@ union v2f
 	f32 e[2];
 };
 
-union v3
+union v3i
 {
-	v3();
-	v3(s32 x, s32 y, s32 z);
-	v3(v2 v, s32 z);
+	v3i();
+	v3i(s32 x, s32 y, s32 z);
+	v3i(v2i v, s32 z);
 
 	struct
 	{
@@ -132,7 +132,7 @@ union v3
 	};
 	struct
 	{
-		v2 xy;
+		v2i xy;
 		s32 filler;
 	};
 	s32 e[3];
@@ -272,11 +272,11 @@ struct Matrix4f
 // Rectangle types
 struct Rect2
 {
-	v2 min; // min is top-left
-	v2 max; // max is bottom-right
+	v2i min; // min is top-left
+	v2i max; // max is bottom-right
 
 	Rect2(s32 x, s32 y, s32 width, s32 height);
-	Rect2(v2 min, v2 max);
+	Rect2(v2i min, v2i max);
 	
 	s32 getLeft() { return min.x; };
 	s32 getRight() { return max.x; };
@@ -293,7 +293,7 @@ struct Rect2
 
 	void setX(s32 newX);
 	void setY(s32 newY);
-	void setPos(v2 newPos);
+	void setPos(v2i newPos);
 };
 
 struct Rect2f
@@ -320,17 +320,17 @@ struct Rect2f
 //---------------------------------------------------------------------------
 // Vector Constructors
 
-v2::v2()
+v2i::v2i()
 {
 	this->x = x;
 	this->y = y;
 }
-v2::v2(s32 x, s32 y)
+v2i::v2i(s32 x, s32 y)
 {
 	this->x = x;
 	this->y = y;
 }
-v2::v2(v2f v)
+v2i::v2i(v2f v)
 {
 	this->x = (s32)v.x;
 	this->y = (s32)v.y;
@@ -346,25 +346,25 @@ v2f::v2f(f32 x, f32 y)
 	this->x = x;
 	this->y = y;
 }
-v2f::v2f(v2 v)
+v2f::v2f(v2i v)
 {
 	this->x = (f32)v.x;
 	this->y = (f32)v.y;
 }
 
-v3::v3()
+v3i::v3i()
 {
 	this->x = 0;
 	this->y = 0;
 	this->z = 0;
 }
-v3::v3(s32 x, s32 y, s32 z)
+v3i::v3i(s32 x, s32 y, s32 z)
 {
 	this->x = x;
 	this->y = y;
 	this->z = z;
 }
-v3::v3(v2 v, s32 z)
+v3i::v3i(v2i v, s32 z)
 {
 	this->x = v.x;
 	this->y = v.y;
@@ -432,48 +432,48 @@ v4f::v4f(v3f v)
 //---------------------------------------------------------------------------
 // Vector operator overloads
 
-v2 operator+(v2 left, v2 right)
+v2i operator+(v2i left, v2i right)
 {
-	v2 result;
+	v2i result;
 	result.x = left.x + right.x;
 	result.y = left.y + right.y;
 	return result;
 }
-v2 operator-(v2 left, v2 right)
+v2i operator-(v2i left, v2i right)
 {
-	v2 result;
+	v2i result;
 	result.x = left.x - right.x;
 	result.y = left.y - right.y;
 	return result;
 }
-v2 operator*(v2 left, s32 right)
+v2i operator*(v2i left, s32 right)
 {
-	v2 result;
+	v2i result;
 	result.x = left.x * right;
 	result.y = left.y * right;
 	return result;
 }
-v2 operator*(v2 left, u32 right)
+v2i operator*(v2i left, u32 right)
 {
 	return left * (s32)right;
 }
-v2 operator*(v2 left, f32 right)
+v2i operator*(v2i left, f32 right)
 {
-	v2 result;
+	v2i result;
 	result.x = (s32)(left.x * right);
 	result.y = (s32)(left.y * right);
 	return result;
 }
-v2 operator/(v2 left, s32 right)
+v2i operator/(v2i left, s32 right)
 {
-	v2 result;
+	v2i result;
 	result.x = left.x / right;
 	result.y = left.y / right;
 	return result;
 }
-v2 operator/(v2 left, f32 right)
+v2i operator/(v2i left, f32 right)
 {
-	v2 result;
+	v2i result;
 	result.x = (s32)(left.x / right);
 	result.y = (s32)(left.y / right);
 	return result;
@@ -508,33 +508,33 @@ v2f operator/(v2f left, f32 right)
 	return result;
 }
 
-static inline v3 operator+(v3 left, v3 right)
+static inline v3i operator+(v3i left, v3i right)
 {
-	v3 result;
+	v3i result;
 	result.x = left.x + right.x;
 	result.y = left.y + right.y;
 	result.z = left.z + right.z;
 	return result;
 }
-static inline v3 operator-(v3 left, v3 right)
+static inline v3i operator-(v3i left, v3i right)
 {
-	v3 result;
+	v3i result;
 	result.x = left.x - right.x;
 	result.y = left.y - right.y;
 	result.z = left.z - right.z;
 	return result;
 }
-static inline v3 operator*(v3 left, s32 right)
+static inline v3i operator*(v3i left, s32 right)
 {
-	v3 result;
+	v3i result;
 	result.x = left.x * right;
 	result.y = left.y * right;
 	result.z = left.z * right;
 	return result;
 }
-static inline v3 operator/(v3 left, s32 right)
+static inline v3i operator/(v3i left, s32 right)
 {
-	v3 result;
+	v3i result;
 	result.x = left.x/right;
 	result.y = left.y/right;
 	result.z = left.z/right;
@@ -851,10 +851,10 @@ void Matrix4f::rotate(f32 xAngle, f32 yAngle, f32 zAngle)
 
 Rect2::Rect2(s32 x, s32 y, s32 width, s32 height)
 {
-    min = v2(x, y);
-    max = v2(x + width, y LOWER_BY height);
+    min = v2i(x, y);
+    max = v2i(x + width, y LOWER_BY height);
 }
-Rect2::Rect2(v2 min, v2 max)
+Rect2::Rect2(v2i min, v2i max)
 {
 	this->min = min;
 	this->max = max;
@@ -872,7 +872,7 @@ void Rect2::setY(s32 newY)
 	min.y = newY;
 	max.y = newY LOWER_BY height;
 }
-void Rect2::setPos(v2 newPos)
+void Rect2::setPos(v2i newPos)
 {
 	setX(newPos.x);
 	setY(newPos.y);
@@ -927,7 +927,7 @@ static inline bool pointInRect(v2 point, Rect2 rect)
 		point.y < rect.getTop() && point.y > rect.getBottom();
 }
 #else
-static inline bool pointInRect(v2 point, Rect2 rect)
+static inline bool pointInRect(v2i point, Rect2 rect)
 {
 	return point.x > rect.getLeft() && point.x < rect.getRight() &&
 		point.y > rect.getTop() && point.y < rect.getBottom();
@@ -935,7 +935,7 @@ static inline bool pointInRect(v2 point, Rect2 rect)
 #endif
 
 //TODO(denis): for now this only checks the smallest rect that contains the given circle
-static inline bool pointInCircle(v2 point, v2 pos, s32 radius)
+static inline bool pointInCircle(v2i point, v2i pos, s32 radius)
 {
 	return point.x > pos.x - radius && point.x < pos.x + radius &&
 		point.y > pos.y - radius && point.y < pos.y + radius;
@@ -946,16 +946,16 @@ static inline bool pointInCircle(v2f point, v2f pos, s32 radius)
 		point.y > pos.y - radius && point.y < pos.y + radius;	
 }
 
-f32 slope(v2 point1, v2 point2)
+f32 slope(v2i point1, v2i point2)
 {
 	return (f32)(point2.y - point1.y) / (f32)(point2.x - point1.x);
 }
-f32 inverseSlope(v2 point1, v2 point2)
+f32 inverseSlope(v2i point1, v2i point2)
 {
 	return (f32)(point2.x - point1.x) / (f32)(point2.y - point1.y);
 }
 
-static inline f32 magnitude(v2 v)
+static inline f32 magnitude(v2i v)
 {
 	return (f32)sqrt((f32)(v.x*v.x + v.y*v.y));
 }
@@ -964,9 +964,9 @@ static inline f32 magnitude(v3f v)
 	return (f32)sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
 }
 
-static inline v2 normalize(v2 v)
+static inline v2i normalize(v2i v)
 {
-	v2 result = {};
+	v2i result = {};
 
 	f32 vectorMagnitude = magnitude(v);
 	if (vectorMagnitude > 0.0f)
@@ -985,9 +985,9 @@ static inline v3f normalize(v3f vector)
 	return result;
 }
 
-static inline v3 cross(v3 v1, v3 v2)
+static inline v3i cross(v3i v1, v3i v2)
 {
-	v3 result;
+	v3i result;
 
 	result.x = v1.y*v2.z - v1.z*v2.y;
 	result.y = v1.z*v2.x - v1.x*v2.z;
