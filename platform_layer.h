@@ -4,17 +4,6 @@
 #include "denis_types.h"
 #include "denis_math.h"
 
-//TODO(denis): maybe this should be defined in denis_drawing.h?
-struct Bitmap
-{
-    u32* pixels;
-
-	u32 width;
-    u32 height;
-
-	// number of bytes in a row
-	u32 stride;
-};
 
 struct Controller
 {

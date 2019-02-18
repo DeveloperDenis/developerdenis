@@ -5,6 +5,46 @@
 
 #define GET_PIXEL(bitmap, x, y) ((u32*)((u8*)(bitmap)->pixels + (y)*(bitmap)->stride) + (x))
 
+/*
+ * STRUCTS
+ */
+
+struct Bitmap
+{
+    u32* pixels;
+
+	u32 width;
+    u32 height;
+
+	// number of bytes in a row
+	u32 stride;
+};
+
+/*
+ * FUNCTIONS
+ */
+
+//TODO(denis): use memory from a pre-allocated pool, rather than dynamic allocation?
+static inline Bitmap allocBitmap(u32 width, u32 height)
+{
+	Bitmap result = {};
+
+	result.width = width;
+	result.height = height;
+	result.stride = width * sizeof(u32);
+	result.pixels = (u32*)HEAP_ALLOC(width*height*sizeof(u32));
+
+	return result;
+}
+
+static inline void freeBitmap(Bitmap* bitmap)
+{
+	HEAP_FREE(bitmap->pixels);
+	bitmap->width = 0;
+	bitmap->height = 0;
+	bitmap->stride = 0;
+}
+
 static inline v4f unpackColour(u32 colour)
 {
 	v4f result;

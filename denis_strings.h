@@ -193,17 +193,51 @@ static inline char* duplicateString(char *string)
 	return result;
 }
 
-//NOTE(denis): user must free result of this function
-static char** tokenizeStringInPlace(char* string, int maxTokens, char separator)
+struct StringTokens
 {
-	char** tokenArray = (char**)HEAP_ALLOC(maxTokens*sizeof(char*));
+	char** tokens;
+	u32 count;
+};
+
+static void free(StringTokens* stringTokens)
+{
+	if (!stringTokens)
+		return;
 	
-	int i;
-	for (i = 0; i < maxTokens; ++i)
-		tokenArray[i] = 0;
+	for (u32 i = 0; i < stringTokens->count; ++i)
+	{
+		free(stringTokens->tokens[i]);
+	}
+
+	free(stringTokens->tokens);
+}
+
+// modifies the input string to insert '\0' wherever the separator appeared
+// then returns a list of pointers to the beginning of each token
+// users must free the result of this function
+static StringTokens tokenizeStringInPlace(char* string, char separator)
+{
+	StringTokens result = {};
+
+	s32 lastCharIndex = -1;
+	
+	for (s32 i = 0; string[i] != 0; ++i)
+	{
+		if (string[i] != separator)
+		{
+			if (lastCharIndex == -1)
+				++result.count;
+			else if (lastCharIndex != i - 1)
+				++result.count;
+
+			lastCharIndex = i;
+		}
+	}
+	
+	result.tokens = (char**)HEAP_ALLOC(result.count*sizeof(char*));
 
 	int charIndex = 0;
-	for (i = 0; i < maxTokens; ++i)
+	for (u32 i = 0; i < result.count; ++i)
 	{
 		while(string[charIndex] != 0 && string[charIndex] == separator)
 			++charIndex;
@@ -211,7 +245,7 @@ static char** tokenizeStringInPlace(char* string, int maxTokens, char separator)
 		if (string[charIndex] == 0)
 			break;
 
-		tokenArray[i] = string + charIndex;
+		result.tokens[i] = string + charIndex;
 		++charIndex;
 
 		while(string[charIndex] != 0 && string[charIndex] != separator)
@@ -223,9 +257,14 @@ static char** tokenizeStringInPlace(char* string, int maxTokens, char separator)
 			break;
 	}
 
-	return tokenArray;
+	return result;
 }
 
+static StringTokens tokenizeString(char* string, char separator)
+{
+	char* stringCopy = duplicateString(string);
+	return tokenizeStringInPlace(stringCopy, separator);
+}
  
 //NOTE(denis): assumes that destination is big enough to hold all of source's
 // characters

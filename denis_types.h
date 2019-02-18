@@ -35,7 +35,6 @@ typedef enum { FALSE, TRUE } bool;
 #define HEAP_ALLOC(size) calloc(1, size)
 #define HEAP_FREE(pointer) free(pointer)
 
-//TODO(denis): dunno if this should be here, also might want this to be more featured
 #if defined(DEBUG)
 #define ASSERT(x)				\
 	do							\

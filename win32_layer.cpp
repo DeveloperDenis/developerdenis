@@ -13,6 +13,7 @@
 #undef far
 
 #include "denis_types.h"
+#include "denis_drawing.h"
 #include "denis_math.h"
 #include "denis_win32.h"
 
