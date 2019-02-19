@@ -13,6 +13,7 @@ struct Controller
     bool rightPressed;
 
     bool actionPressed;
+	bool actionWasPressed;
 };
 
 struct Mouse

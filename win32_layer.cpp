@@ -354,6 +354,7 @@ static LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, W
 			if (wParam == VK_SPACE)
 			{
 				_input.controller.actionPressed = true;
+				_input.controller.actionWasPressed = false;
 			}
 		} break;
 
@@ -380,6 +381,7 @@ static LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, W
 			if (wParam == VK_SPACE)
 			{
 				_input.controller.actionPressed = false;
+				_input.controller.actionWasPressed = true;
 			}
 		} break;
 
@@ -619,7 +621,7 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, 
     //TODO(denis): might want to do this eventually
     //SetProcessDpiAwareness(PROCESS_SYSTEM_DPI_AWARE);
 
-    Mouse oldMouse = {};
+	Input oldInput = {};
     _input.mouse.leftClickStartPos = v2i(-1, -1);
     _input.mouse.rightClickStartPos = v2i(-1, -1);
 
@@ -705,14 +707,11 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, 
 		_currentTouchPoint = 0;
 		_input.touch = {};
 
-		//TODO(denis): this only gives programs one frame to handle mouse clicks
-		// is that enough? It seems like it should be fine, but maybe it would be safer with
-		// more than one frame? But then users would need to add tests to avoid multiple clicks
-		// registering in a program
-		bool disableLeftWasPressed = _input.mouse.leftWasPressed && oldMouse.leftPressed;
-		bool disableRightWasPressed = _input.mouse.rightWasPressed && oldMouse.rightPressed;
-
-		oldMouse = _input.mouse;
+		bool disableLeftWasPressed = _input.mouse.leftWasPressed && oldInput.mouse.leftPressed;
+		bool disableRightWasPressed = _input.mouse.rightWasPressed && oldInput.mouse.rightPressed;
+		bool disableActionWasPressed = _input.controller.actionWasPressed && oldInput.controller.actionPressed;
+		
+	    oldInput = _input;
 		if (disableLeftWasPressed)
 		{
 			_input.mouse.leftWasPressed = false;
@@ -723,6 +722,8 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, 
 			_input.mouse.rightWasPressed = false;
 			_input.mouse.rightClickStartPos = v2i(-1, -1);
 		}
+		if (disableActionWasPressed)
+			_input.controller.actionWasPressed = false;
     }
 	
     DestroyWindow(_windowHandle);
