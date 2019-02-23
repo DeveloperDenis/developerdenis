@@ -82,15 +82,18 @@ static inline void drawPoint(Bitmap* buffer, v2i point, u32 colour)
 static void drawBitmap(Bitmap* buffer, Bitmap* bitmap, v2i pos)
 {
 	s32 startY = MAX(pos.y, 0);
-	s32 endY = MIN(pos.y + bitmap->height, (s32)buffer->height);
+	s32 endY = MIN(pos.y + (s32)bitmap->height, (s32)buffer->height);
 
 	s32 startX = MAX(pos.x, 0);
-	s32 endX = MIN(pos.x + bitmap->width, (s32)buffer->width);
+	s32 endX = MIN(pos.x + (s32)bitmap->width, (s32)buffer->width);
 
-	u32 row = 0;
+	s32 colOffset = MAX(0, 0 - pos.x);
+	s32 rowOffset = MAX(0, 0 - pos.y);
+	
+	u32 row = rowOffset;
 	for (s32 y = startY; y < endY; ++y, ++row)
 	{
-		u32 col = 0;
+		u32 col = colOffset;
 		for (s32 x = startX; x < endX; ++x, ++col)
 		{
 			u32* inPixel = GET_PIXEL(bitmap, col, row);

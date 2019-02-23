@@ -91,6 +91,13 @@ union v2i
 		s32 h;
 	};
 	s32 e[2];
+
+	v2i& operator+=(v2i& right)
+	{
+		this->x = this->x + right.x;
+		this->y = this->y + right.y;
+		return *this;
+	}
 };
 
 union v2f
