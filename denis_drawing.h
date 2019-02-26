@@ -108,15 +108,36 @@ static void drawBitmap(Bitmap* buffer, Bitmap* bitmap, v2i pos)
 				*outPixel = *inPixel;
 				continue;
 			}
-			
-			// basic linear alpha blending
 
+			// basic linear alpha blending
+#if 0
 			v4f srcColour = unpackColour(*inPixel);
 			v4f destColour = unpackColour(*outPixel);
 
 			v3f resultColour = destColour.xyz*(1.0f - srcColour.a) + srcColour.xyz*srcColour.a;
 
 			u32 colour = packColour(resultColour);
+#else
+			// this is a very slightly different approach to the above, to get better performance
+			f32 inR = (f32)(((*inPixel) & 0x00FF0000) >> 16);
+			f32 inG = (f32)(((*inPixel) & 0x0000FF00) >> 8);
+			f32 inB = (f32)((*inPixel) & 0x000000FF);
+			f32 inA = (f32)(((*inPixel) & 0xFF000000) >> 24) / 255.0f;
+
+			f32 outR = (f32)(((*outPixel) & 0x00FF0000) >> 16);
+			f32 outG = (f32)(((*outPixel) & 0x0000FF00) >> 8);
+			f32 outB = (f32)((*outPixel) & 0x000000FF);
+
+			f32 r = outR*(1.0f - inA) + inR*inA;
+			f32 g = outG*(1.0f - inA) + inG*inA;
+			f32 b = outB*(1.0f - inA) + inB*inA;
+
+			u8 rByte = (u8)r;
+			u8 gByte = (u8)g;
+			u8 bByte = (u8)b;
+
+			u32 colour = 0xFF000000 | (rByte << 16) | (gByte << 8) | (bByte);
+#endif
 
 			*outPixel = colour;
 		}

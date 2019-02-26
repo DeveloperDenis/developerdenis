@@ -30,6 +30,8 @@
 
 #define ABS_VALUE(x) ((x) < 0 ? -(x) : (x))
 
+#define CLAMP_MIN(value, min) ((value) < (min) ? min : value)
+#define CLAMP_MAX(value, max) ((value) > (max) ? max : value)
 #define CLAMP_RANGE(value, min, max) ((value) > (min) ? MIN(value, max) : (min))
 
 #define DEGREE_TO_RAD(angle) ((f32)(angle)*(f32)M_PI / 180.0f)
@@ -117,6 +119,13 @@ union v2f
 		f32 h;
 	};
 	f32 e[2];
+
+	v2f& operator+=(v2f& right)
+	{
+		this->x = this->x + right.x;
+		this->y = this->y + right.y;
+		return *this;
+	}
 };
 
 union v3i

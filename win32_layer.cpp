@@ -634,7 +634,7 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, 
 	_platform.mediaPlayFile = win32_mediaPlayFile;
 	_platform.mediaGetState = win32_mediaGetState;
 	
-	f64 timeMs = 0.0;
+	f64 timeS = 0.0;
 	
 	appInit(_platform, (Memory*)mainMemory, &screen);
 	
@@ -678,7 +678,7 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, 
 		screen.height = ABS_VALUE(_backBuffer.bitmapInfo.bmiHeader.biHeight);
 		screen.stride = screen.width*sizeof(u32);
 		
-	    appUpdate(_platform, (Memory*)mainMemory, &screen, &_input, (f32)timeMs);
+	    appUpdate(_platform, (Memory*)mainMemory, &screen, &_input, (f32)timeS);
 
 		if (!_mediaSession)
 			RedrawWindow(_windowHandle, 0, 0, RDW_INVALIDATE|RDW_INTERNALPAINT);
@@ -686,16 +686,16 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, 
 		LARGE_INTEGER currentCounts;
 		QueryPerformanceCounter(&currentCounts);
 	    u64 timePassed = currentCounts.QuadPart - lastCounts.QuadPart;
-	    timeMs = (f64)timePassed * 1000.0 / (f64)countFrequency.QuadPart;
+	    timeS = (f64)timePassed / (f64)countFrequency.QuadPart;
 
 		//TODO(denis): probably don't do a busy loop
 		//NOTE(denis): the epsilon is an attempt to lessen the effects of random spikes
 		f32 epsilon = 0.01f;
-		while (timeMs < (f64)1/(f64)FPS_TARGET * 1000.0 - epsilon)
+		while (timeS < (f64)1/(f64)FPS_TARGET - epsilon)
 		{
 			QueryPerformanceCounter(&currentCounts);
 			timePassed = currentCounts.QuadPart - lastCounts.QuadPart;
-			timeMs = (f64)timePassed * 1000.0 / (f64)countFrequency.QuadPart;
+			timeS = (f64)timePassed / (f64)countFrequency.QuadPart;
 		}
 #if 0
 		char timeBuffer[100];
