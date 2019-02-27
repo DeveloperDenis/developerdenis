@@ -60,11 +60,13 @@ static inline bool pointInCircle(v2f point, v2f pos, s32 radius);
 static inline f32 slope(v2i point1, v2i point2);
 static inline f32 inverseSlope(v2i point1, v2i point2);
 
+static inline f32 magnitude(v2f v);
 static inline f32 magnitude(v2i v);
 static inline f32 magnitude(v3f v);
 
+static inline v2f normalize(v2f v);
 static inline v2i normalize(v2i v);
-static inline v3f normalize(v3f vector);
+static inline v3f normalize(v3f v);
 
 static inline f32 dot(v3f v1, v3f v2);
 
@@ -80,7 +82,7 @@ union v2i
 {
 	v2i();
 	v2i(s32 x, s32 y);
-	v2i(v2f v);
+	explicit v2i(v2f v);
 	
 	struct
 	{
@@ -93,8 +95,8 @@ union v2i
 		s32 h;
 	};
 	s32 e[2];
-
-	v2i& operator+=(v2i& right)
+	
+	v2i& operator+=(v2i right)
 	{
 		this->x = this->x + right.x;
 		this->y = this->y + right.y;
@@ -106,7 +108,7 @@ union v2f
 {
 	v2f();
 	v2f(f32 x, f32 y);
-	v2f(v2i v);
+	explicit v2f(v2i v);
 	
 	struct
 	{
@@ -119,11 +121,17 @@ union v2f
 		f32 h;
 	};
 	f32 e[2];
-
-	v2f& operator+=(v2f& right)
+	
+	v2f& operator+=(v2f right)
 	{
 		this->x = this->x + right.x;
 		this->y = this->y + right.y;
+		return *this;
+	}
+	v2f& operator-=(v2f right)
+	{
+		this->x = this->x - right.x;
+		this->y = this->y - right.y;
 		return *this;
 	}
 };
@@ -133,7 +141,7 @@ union v3i
 	v3i();
 	v3i(s32 x, s32 y, s32 z);
 	v3i(v2i v, s32 z);
-
+	
 	struct
 	{
 		s32 x;
@@ -152,7 +160,7 @@ union v3i
 		s32 filler;
 	};
 	s32 e[3];
-
+	
 	s32& operator[](u32 index)
 	{
 		return e[index];
@@ -164,7 +172,7 @@ union v3f
 	v3f();
 	v3f(f32 x, f32 y, f32 z);
 	v3f(v2f, f32);
-	v3f(v4f v);
+	explicit v3f(v4f v);
 	
 	struct
 	{
@@ -184,12 +192,12 @@ union v3f
 		f32 _unused;
 	};
 	f32 e[3];
-
+	
 	f32& operator[](u32 index)
 	{
 		return e[index];
 	}
-
+	
 	v3f& operator+=(v3f right)
 	{
 		this->x = this->x + right.x;
@@ -212,7 +220,7 @@ union v4f
 	v4f(f32 x, f32 y, f32 z);
 	v4f(f32 x, f32 y, f32 z, f32 w);
 	v4f(v3f v, f32 w);
-	v4f(v3f v);
+	explicit v4f(v3f v);
 	
 	struct
 	{
@@ -234,7 +242,7 @@ union v4f
 		f32 _unused;
 	};
 	f32 e[4];
-
+	
 	f32& operator[](u32 index)
 	{
 		return e[index];
@@ -248,34 +256,34 @@ union v4f
 struct Matrix4f
 {
 	f32 elements[4][4];
-
+	
 	v3f currentScale;
-
+	
 	f32* operator[](u32 index)
 	{
 		return elements[index];
 	}
-
+	
 	void setRow(u32 row, v3f newValues);
 	void setRow(u32 row, v4f newValues);
-
+	
 	void setTranslation(f32 x, f32 y, f32 z);
 	void setTranslation(v3f translation);
-
+	
 	v3f getTranslation();
-
+	
 	void translate(f32 x, f32 y, f32 z);
 	
 	void setScale(f32 x, f32 y, f32 z);
 	void setScale(v3f newScale);
-
+	
 	v3f getScale();
 	
 	void scale(f32 x, f32 y, f32 z);
 	
 	//NOTE(denis): these are in radians
 	void setRotation(f32 xAngle, f32 yAngle, f32 zAngle);
-
+	
 	void rotate(f32 xAngle, f32 yAngle, f32 zAngle);
 };
 
@@ -290,7 +298,7 @@ struct Rect2
 {
 	v2i min; // min is top-left
 	v2i max; // max is bottom-right
-
+	
 	Rect2(s32 x, s32 y, s32 width, s32 height);
 	Rect2(v2i min, v2i max);
 	
@@ -298,15 +306,15 @@ struct Rect2
 	s32 getRight() { return max.x; };
 	s32 getTop() { return min.y; };
 	s32 getBottom() { return max.y; };
-
+	
 	s32 getWidth() { return max.x - min.x; };
 	s32 getHeight() { return ABS_VALUE(max.y - min.y); };
-
+	
 	void moveLeft(s32 amount) { setX(min.x - amount); }
 	void moveRight(s32 amount) { setX(min.x + amount); }
 	void moveUp(s32 amount) { setY(min.y RAISE_BY amount); }
 	void moveDown(s32 amount) { setY(min.y LOWER_BY amount); }
-
+	
 	void setX(s32 newX);
 	void setY(s32 newY);
 	void setPos(v2i newPos);
@@ -316,7 +324,7 @@ struct Rect2f
 {
 	v2f min;
 	v2f max;
-
+	
 	Rect2f(f32 x, f32 y, f32 width, f32 height);
 	Rect2f(v2f min, v2f max);
 	
@@ -324,10 +332,10 @@ struct Rect2f
 	f32 getRight() { return max.x; };
 	f32 getTop() { return min.y; };
 	f32 getBottom() { return max.y; };
-
+	
 	f32 getWidth() { return max.x - min.x; };
 	f32 getHeight() { return ABS_VALUE(max.y - min.y); };
-
+	
 	void setX(f32 newX);
 	void setY(f32 newY);
 	void setPos(v2f newPos);
@@ -653,7 +661,7 @@ static inline Matrix4f getIdentityMatrix4f()
 {
 	Matrix4f result = {};
 	result.currentScale = v3f(1.0f, 1.0f, 1.0f);
-
+	
 	result[0][0] = 1.0f;
 	result[1][1] = 1.0f;
 	result[2][2] = 1.0f;
@@ -675,7 +683,7 @@ static inline Matrix4f getXRotationMatrix(f32 xAngle)
 	xRotation[1][2] = (f32)-sin(xAngle);
 	xRotation[2][1] = (f32)sin(xAngle);
 	xRotation[2][2] = (f32)cos(xAngle);
-
+	
 	return xRotation;
 }
 static inline Matrix4f getYRotationMatrix(f32 yAngle)
@@ -685,7 +693,7 @@ static inline Matrix4f getYRotationMatrix(f32 yAngle)
 	yRotation[0][2] = (f32)sin(yAngle);
 	yRotation[2][0] = (f32)-sin(yAngle);
 	yRotation[2][2] = (f32)cos(yAngle);
-
+	
 	return yRotation;
 }
 static inline Matrix4f getZRotationMatrix(f32 zAngle)
@@ -695,7 +703,7 @@ static inline Matrix4f getZRotationMatrix(f32 zAngle)
 	zRotation[0][1] = (f32)-sin(zAngle);
 	zRotation[1][0] = (f32)sin(zAngle);
 	zRotation[1][1] = (f32)cos(zAngle);
-
+	
 	return zRotation;
 }
 
@@ -706,7 +714,7 @@ static inline Matrix4f getZRotationMatrix(f32 zAngle)
 static inline Matrix4f operator*(Matrix4f left, Matrix4f right)
 {
 	Matrix4f result = M4f();
-
+	
 	for (u32 row = 0; row < 4; ++row)
 	{
 		for (u32 col = 0; col < 4; ++col)
@@ -726,12 +734,12 @@ static inline Matrix4f operator*(Matrix4f left, Matrix4f right)
 static inline v4f operator*(Matrix4f left, v4f right)
 {
 	v4f result;
-
+	
 	result.x = left[0][0]*right.x + left[0][1]*right.y + left[0][2]*right.z + left[0][3]*right.w;
 	result.y = left[1][0]*right.x + left[1][1]*right.y + left[1][2]*right.z + left[1][3]*right.w;
 	result.z = left[2][0]*right.x + left[2][1]*right.y + left[2][2]*right.z + left[2][3]*right.w;
     result.w = left[3][0]*right.x + left[3][1]*right.y + left[3][2]*right.z + left[3][3]*right.w;
-
+	
 	if (result.w != 1.0f)
 	{
 		result = result/result.w;
@@ -752,7 +760,7 @@ void Matrix4f::setRow(u32 row, v3f newValues)
 {
 	if (row > 3)
 		return;
-
+	
 	elements[row][0] = newValues.x;
 	elements[row][1] = newValues.y;
 	elements[row][2] = newValues.z;
@@ -761,7 +769,7 @@ void Matrix4f::setRow(u32 row, v4f newValues)
 {
 	if (row > 3)
 		return;
-
+	
 	elements[row][0] = newValues.x;
 	elements[row][1] = newValues.y;
 	elements[row][2] = newValues.z;
@@ -798,11 +806,11 @@ void Matrix4f::setScale(f32 x, f32 y, f32 z)
 	elements[0][0] /= currentScale.x;
 	elements[1][1] /= currentScale.y;
 	elements[2][2] /= currentScale.z;
-
+	
 	elements[0][0] *= x;
 	elements[1][1] *= y;
 	elements[2][2] *= z;
-
+	
 	currentScale = v3f(x, y, z);
 }
 void Matrix4f::setScale(v3f newScale)
@@ -826,12 +834,12 @@ void Matrix4f::setRotation(f32 xAngle, f32 yAngle, f32 zAngle)
 	v3f savedTranslation = getTranslation();
 	v3f savedScale = currentScale;
 	currentScale = v3f(1.0f, 1.0f, 1.0f);
-
+	
 	Matrix4f xRotation = getXRotationMatrix(xAngle);
 	Matrix4f yRotation = getYRotationMatrix(yAngle);
 	Matrix4f zRotation = getZRotationMatrix(zAngle);
 	Matrix4f transformation = zRotation * yRotation * xRotation;
-
+	
 	for (u32 i = 0; i < 4; ++i)
 	{
 		for (u32 j = 0; j < 4; ++j)
@@ -850,14 +858,14 @@ void Matrix4f::rotate(f32 xAngle, f32 yAngle, f32 zAngle)
 	v3f savedTranslation = getTranslation();
 	v3f savedScale = currentScale;
 	setScale(1.0f, 1.0f, 1.0f);
-		
+	
 	Matrix4f xRotation = getXRotationMatrix(xAngle);
 	Matrix4f yRotation = getYRotationMatrix(yAngle);
 	Matrix4f zRotation = getZRotationMatrix(zAngle);
 	Matrix4f transformation = zRotation * yRotation * xRotation;
 	
 	*this = operator*(transformation, *this);
-		
+	
 	setTranslation(savedTranslation);
 	setScale(savedScale);
 }
@@ -971,6 +979,10 @@ f32 inverseSlope(v2i point1, v2i point2)
 	return (f32)(point2.x - point1.x) / (f32)(point2.y - point1.y);
 }
 
+static inline f32 magnitude(v2f v)
+{
+	return (f32)sqrt(v.x*v.x + v.y*v.y);
+}
 static inline f32 magnitude(v2i v)
 {
 	return (f32)sqrt((f32)(v.x*v.x + v.y*v.y));
@@ -980,23 +992,33 @@ static inline f32 magnitude(v3f v)
 	return (f32)sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
 }
 
-static inline v2i normalize(v2i v)
+static inline v2f normalize(v2f v)
 {
-	v2i result = {};
-
+	v2f result = {};
+	
 	f32 vectorMagnitude = magnitude(v);
 	if (vectorMagnitude > 0.0f)
 		result = v/vectorMagnitude;
 	
 	return result;
 }
-static inline v3f normalize(v3f vector)
+static inline v2i normalize(v2i v)
+{
+	v2i result = {};
+	
+	f32 vectorMagnitude = magnitude(v);
+	if (vectorMagnitude > 0.0f)
+		result = v/vectorMagnitude;
+	
+	return result;
+}
+static inline v3f normalize(v3f v)
 {
 	v3f result = {};
 	
-	f32 vectorMagnitude = magnitude(vector);
+	f32 vectorMagnitude = magnitude(v);
 	if (vectorMagnitude > 0)
-		result = vector/vectorMagnitude;
+		result = v/vectorMagnitude;
 	
 	return result;
 }
@@ -1004,11 +1026,11 @@ static inline v3f normalize(v3f vector)
 static inline v3i cross(v3i v1, v3i v2)
 {
 	v3i result;
-
+	
 	result.x = v1.y*v2.z - v1.z*v2.y;
 	result.y = v1.z*v2.x - v1.x*v2.z;
 	result.z = v1.x*v2.y - v1.y*v2.x;
-
+	
 	return result;
 }
 static inline v3f cross(v3f v1, v3f v2)
@@ -1018,14 +1040,14 @@ static inline v3f cross(v3f v1, v3f v2)
 	result.x = v1.y*v2.z - v1.z*v2.y;
 	result.y = v1.z*v2.x - v1.x*v2.z;
 	result.z = v1.x*v2.y - v1.y*v2.x;
-
+	
 	return result;
 }
 static inline v4f cross(v4f v1, v4f v2)
 {
 	v3f reducedVector1(v1.x, v1.y, v1.z);
 	v3f reducedVector2(v2.x, v2.y, v2.z);
-
+	
 	v4f result(cross(reducedVector1, reducedVector2), 1.0f);
 	return result;
 }
