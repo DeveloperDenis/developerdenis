@@ -11,9 +11,9 @@ set dt=%date:~7,2%-%date:~4,2%-%date:~10,4%_%hh%_%time:~3,2%_%time:~6,2%
 
 set denis_library=..\developerdenis\
 
-set flags=/nologo /D_CRT_SECURE_NO_WARNINGS /DDEBUG /DDENIS_WIN32 /Gm- /GR- /EHa- /Zi /FC /W4 /WX /wd4100 /wd4505 /wd4189 /wd4201
+set flags=/Od /nologo /D_CRT_SECURE_NO_WARNINGS /DDEBUG /DDENIS_WIN32 /Gm- /GR- /EHa- /Zi /FC /W4 /WX /wd4505 /wd4201
 set linker_flags=/incremental:no
-set includes=/I %denis_library% /I ../src/
+set includes=/I %denis_library% /I ..\src\
 set files=..\src\main.cpp
 
 set settings_file="..\src\project.settings"
@@ -49,10 +49,11 @@ if exist %settings_file% (
    echo #endif >> %settings_output%
 )
 
+
 del *.pdb > NUL 2> NUL
 
 REM build main exe
-cl %flags% %includes% %denis_library%\win32_layer.cpp /Fe%exe_file_name% /link %linker_flags% user32.lib Gdi32.lib Shcore.lib
+cl %flags% %includes% %denis_library%\win32_layer.cpp /Fe%exe_file_name% /link %linker_flags% user32.lib Gdi32.lib Shcore.lib Mfplat.lib Mf.lib Mfuuid.lib Shlwapi.lib Ole32.lib
 
 REM build DLL
 echo FOO > pdb.lock

@@ -1,8 +1,5 @@
-//----------------------------------------------------
-//	  denis_math.h
-// Written by Denis Levesque
-// NOTE: this will only compile with a C++ compiler
-//----------------------------------------------------
+#ifndef DENIS_MATH_H_
+#define DENIS_MATH_H_
 
 #if defined(UP_POSITIVE_Y)
 #define LOWER_BY -
@@ -11,9 +8,6 @@
 #define LOWER_BY +
 #define RAISE_BY -
 #endif
-
-#ifndef DENIS_MATH_H_
-#define DENIS_MATH_H_
 
 #include "denis_types.h"
 
@@ -522,6 +516,13 @@ v2f operator*(v2f left, f32 right)
 	v2f result;
 	result.x = left.x * right;
 	result.y = left.y * right;
+	return result;
+}
+v2f operator*(f32 left, v2f right)
+{
+	v2f result;
+	result.x = left*right.x;
+	result.y = left*right.y;
 	return result;
 }
 v2f operator/(v2f left, f32 right)

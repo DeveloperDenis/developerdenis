@@ -80,7 +80,7 @@ struct MediaPlayerCallback : public IMFAsyncCallback
         return count;
 	}
 	
-	HRESULT GetParameters(DWORD* flags, DWORD* queue)
+	HRESULT GetParameters(DWORD*, DWORD*)
 	{
 		return E_NOTIMPL;
 	}
@@ -570,7 +570,7 @@ static LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, W
     return result;
 }
 
-int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, int cmdShow)
+int CALLBACK WinMain(HINSTANCE instance, HINSTANCE, LPSTR /*cmdLine*/, int)
 {	
     WNDCLASSEX windowClass = {};
     windowClass.cbSize = sizeof(WNDCLASSEX);
