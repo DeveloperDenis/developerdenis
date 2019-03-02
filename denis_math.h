@@ -1,14 +1,6 @@
 #ifndef DENIS_MATH_H_
 #define DENIS_MATH_H_
 
-#if defined(UP_POSITIVE_Y)
-#define LOWER_BY -
-#define RAISE_BY +
-#else
-#define LOWER_BY +
-#define RAISE_BY -
-#endif
-
 #include "denis_types.h"
 
 //TODO(denis): remove these eventually?
@@ -47,6 +39,7 @@ struct Rect2f;
 // Functions Declarations:
 
 static inline bool pointInRect(v2i point, Rect2 rect);
+static inline bool pointInRect(v2f point, Rect2f rect);
 
 static inline bool pointInCircle(v2i point, v2i pos, s32 radius);
 static inline bool pointInCircle(v2f point, v2f pos, s32 radius);
@@ -284,55 +277,88 @@ struct Matrix4f
 //---------------------------------------------------------------------------
 // Rectangle types:
 
-//TODO(denis): should my rectangles have a centre origin instead of top-left?
-//TODO(denis): also, maybe put rectangles into a "denis_geometry.h" file once I get some more geometry code
-//TODO(denis): put all types together at the top?
-// Rectangle types
 struct Rect2
 {
-	v2i min; // min is top-left
-	v2i max; // max is bottom-right
+	v2i pos;
+	s32 radiusX;
+	s32 radiusY;
 	
-	Rect2(s32 x, s32 y, s32 width, s32 height);
-	Rect2(v2i min, v2i max);
+	bool positiveY;
 	
-	s32 getLeft() { return min.x; };
-	s32 getRight() { return max.x; };
-	s32 getTop() { return min.y; };
-	s32 getBottom() { return max.y; };
+	Rect2(s32 x, s32 y, s32 width, s32 height, bool upPositive = true)
+	{
+		pos = {x, y};
+		radiusX = width/2;
+		radiusY = height/2;
+		positiveY = upPositive;
+	}
+	Rect2(v2i centre, s32 width, s32 height, bool upPositive = true)
+	{
+		pos = centre;
+		radiusX = width/2;
+		radiusY = height/2;
+		positiveY = upPositive;
+	}
+	Rect2(v2i centre, v2i dim, bool upPositive = true)
+	{
+		pos = centre;
+		radiusX = dim.w/2;
+		radiusY = dim.h/2;
+		positiveY = upPositive;
+	}
 	
-	s32 getWidth() { return max.x - min.x; };
-	s32 getHeight() { return ABS_VALUE(max.y - min.y); };
+	s32 getLeft() { return pos.x - radiusX; }
+	s32 getRight() { return pos.x + radiusX; }
+	s32 getTop() { return positiveY ? pos.y + radiusY : pos.y - radiusY; }
+	s32 getBottom() { return positiveY ? pos.y - radiusY : pos.y + radiusY; }
 	
-	void moveLeft(s32 amount) { setX(min.x - amount); }
-	void moveRight(s32 amount) { setX(min.x + amount); }
-	void moveUp(s32 amount) { setY(min.y RAISE_BY amount); }
-	void moveDown(s32 amount) { setY(min.y LOWER_BY amount); }
+	void setLeft(s32 newLeft) { pos.x = newLeft + radiusX; }
+	void setTop(s32 newTop) { pos.y = positiveY ? newTop - radiusY : newTop + radiusY; }
 	
-	void setX(s32 newX);
-	void setY(s32 newY);
-	void setPos(v2i newPos);
+	s32 getWidth() { return radiusX*2; }
+	s32 getHeight() { return radiusY*2; }
 };
 
 struct Rect2f
 {
-	v2f min;
-	v2f max;
+	v2f pos;
+	f32 radiusX;
+	f32 radiusY;
 	
-	Rect2f(f32 x, f32 y, f32 width, f32 height);
-	Rect2f(v2f min, v2f max);
+	bool positiveY;
 	
-	f32 getLeft() { return min.x; };
-	f32 getRight() { return max.x; };
-	f32 getTop() { return min.y; };
-	f32 getBottom() { return max.y; };
+	Rect2f(f32 x, f32 y, f32 width, f32 height, bool upPositive = true)
+	{
+		pos = {x, y};
+		radiusX = width/2.0f;
+		radiusY = height/2.0f;
+		positiveY = upPositive;
+	}
+	Rect2f(v2f centre, f32 width, f32 height, bool upPositive = true)
+	{
+		pos = centre;
+		radiusX = width/2.0f;
+		radiusY = height/2.0f;
+		positiveY = upPositive;
+	}
+	Rect2f(v2f centre, v2f dim, bool upPositive = true)
+	{
+		pos = centre;
+		radiusX = dim.w/2.0f;
+		radiusY = dim.h/2.0f;
+		positiveY = upPositive;
+	}
 	
-	f32 getWidth() { return max.x - min.x; };
-	f32 getHeight() { return ABS_VALUE(max.y - min.y); };
+	f32 getLeft() { return pos.x - radiusX; }
+	f32 getRight() { return pos.x + radiusX; }
+	f32 getTop() { return positiveY ? pos.y + radiusY : pos.y - radiusY; }
+	f32 getBottom() { return positiveY ? pos.y - radiusY : pos.y + radiusY; }
 	
-	void setX(f32 newX);
-	void setY(f32 newY);
-	void setPos(v2f newPos);
+	void setLeft(f32 newLeft) { pos.x = newLeft + radiusX; }
+	void setTop(f32 newTop) { pos.y = positiveY ? newTop - radiusY : newTop + radiusY; }
+	
+	f32 getWidth() { return radiusX*2.0f; }
+	f32 getHeight() { return radiusY*2.0f; }
 };
 
 //---------------------------------------------------------------------------
@@ -872,68 +898,6 @@ void Matrix4f::rotate(f32 xAngle, f32 yAngle, f32 zAngle)
 }
 
 //--------------------------------------------------------------------------
-// Rectangle Member Functions
-
-Rect2::Rect2(s32 x, s32 y, s32 width, s32 height)
-{
-    min = v2i(x, y);
-    max = v2i(x + width, y LOWER_BY height);
-}
-Rect2::Rect2(v2i min, v2i max)
-{
-	this->min = min;
-	this->max = max;
-}
-
-void Rect2::setX(s32 newX)
-{
-	s32 width = getWidth();
-	min.x = newX;
-	max.x = newX + width;
-}
-void Rect2::setY(s32 newY)
-{
-	s32 height = getHeight();
-	min.y = newY;
-	max.y = newY LOWER_BY height;
-}
-void Rect2::setPos(v2i newPos)
-{
-	setX(newPos.x);
-	setY(newPos.y);
-}
-
-
-Rect2f::Rect2f(f32 x, f32 y, f32 width, f32 height)
-{
-	min = v2f(x, y);
-	max = v2f(x + width, y LOWER_BY height);
-}
-Rect2f::Rect2f(v2f min, v2f max)
-{
-	this->min = min;
-	this->max = max;
-}
-
-void Rect2f::setX(f32 newX)
-{
-	f32 width = getWidth();
-	min.x = newX;
-	max.x = newX + width;
-}
-void Rect2f::setY(f32 newY)
-{
-	f32 height = getHeight();
-	min.y = newY;
-	max.y = newY LOWER_BY height;
-}
-void Rect2f::setPos(v2f newPos)
-{
-	setX(newPos.x);
-	setY(newPos.y);
-}
-
-//--------------------------------------------------------------------------
 // General Function Definitions
 
 static inline v3f clampV3f(v3f v, f32 min, f32 max)
@@ -945,19 +909,20 @@ static inline v3f clampV3f(v3f v, f32 min, f32 max)
 	return result;
 }
 
-#if defined(UP_POSITIVE_Y)
-static inline bool pointInRect(v2 point, Rect2 rect)
-{
-	return point.x > rect.getLeft() && point.x < rect.getRight() &&
-		point.y < rect.getTop() && point.y > rect.getBottom();
-}
-#else
 static inline bool pointInRect(v2i point, Rect2 rect)
 {
-	return point.x > rect.getLeft() && point.x < rect.getRight() &&
-		point.y > rect.getTop() && point.y < rect.getBottom();
+	return point.x > rect.pos.x - rect.radiusX &&
+		point.x < rect.pos.x + rect.radiusX &&
+		point.y < rect.pos.y + rect.radiusY &&
+		point.y > rect.pos.y - rect.radiusY;
 }
-#endif
+static inline bool pointInRect(v2f point, Rect2f rect)
+{
+	return point.x > rect.pos.x - rect.radiusX &&
+		point.x < rect.pos.x + rect.radiusX &&
+		point.y < rect.pos.y + rect.radiusY &&
+		point.y > rect.pos.y - rect.radiusY;
+}
 
 //TODO(denis): for now this only checks the smallest rect that contains the given circle
 static inline bool pointInCircle(v2i point, v2i pos, s32 radius)
