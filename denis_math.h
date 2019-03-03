@@ -64,6 +64,43 @@ static inline v4f cross(v4f v1, v4f v2);
 
 
 //---------------------------------------------------------------------------
+// Operator overload declarations:
+// I need to do this because the C++ compiler isn't very smart
+
+static inline v2i operator+(v2i left, v2i right);
+static inline v2i operator-(v2i left, v2i right);
+static inline v2i operator*(v2i left, s32 right);
+static inline v2i operator*(v2i left, u32 right);
+static inline v2i operator*(v2i left, f32 right);
+static inline v2i operator/(v2i left, s32 right);
+static inline v2i operator/(v2i left, f32 right);
+
+static inline v2f operator+(v2f left, v2f right);
+static inline v2f operator-(v2f left, v2f right);
+static inline v2f operator*(v2f left, f32 right);
+static inline v2f operator*(f32 left, v2f right);
+static inline v2f operator/(v2f left, f32 right);
+
+static inline v3i operator+(v3i left, v3i right);
+static inline v3i operator-(v3i left, v3i right);
+static inline v3i operator*(v3i left, s32 right);
+static inline v3i operator/(v3i left, s32 right);
+
+static inline v3f operator-(v3f& v);
+static inline v3f operator+(v3f left, v3f right);
+static inline v3f operator-(v3f left, v3f right);
+static inline v3f operator*(s32 left, v3f right);
+static inline v3f operator*(v3f left, s32 right);
+static inline v3f operator*(v3f left, f32 right);
+static inline v3f operator*(f32 left, v3f right);
+static inline v3f operator/(v3f left, f32 right);
+static inline bool operator!=(v3f left, v3f right);
+
+static inline v4f operator+(v4f left, v4f right);
+static inline v4f operator-(v4f left, v4f right);
+static inline v4f operator/(v4f left, f32 scalar);
+
+//---------------------------------------------------------------------------
 // Vector types:
 
 union v2i
@@ -250,7 +287,6 @@ union v4f
 struct Matrix4f
 {
 	f32 elements[4][4];
-	
 	v3f currentScale;
 	
 	f32* operator[](u32 index)
@@ -287,85 +323,84 @@ struct Matrix4f
 struct Rect2
 {
 	v2i pos;
-	s32 radiusX;
-	s32 radiusY;
+	v2i halfDim;
 	
 	bool positiveY;
 	
 	Rect2(s32 x, s32 y, s32 width, s32 height, bool upPositive = true)
 	{
-		pos = {x, y};
-		radiusX = width/2;
-		radiusY = height/2;
+		pos = v2i(x, y);
+		halfDim = v2i(width/2, height/2);
 		positiveY = upPositive;
 	}
 	Rect2(v2i centre, s32 width, s32 height, bool upPositive = true)
 	{
 		pos = centre;
-		radiusX = width/2;
-		radiusY = height/2;
+		halfDim = v2i(width/2, height/2);
 		positiveY = upPositive;
 	}
 	Rect2(v2i centre, v2i dim, bool upPositive = true)
 	{
 		pos = centre;
-		radiusX = dim.w/2;
-		radiusY = dim.h/2;
+		halfDim = dim/2;
 		positiveY = upPositive;
 	}
 	
-	s32 getLeft() { return pos.x - radiusX; }
-	s32 getRight() { return pos.x + radiusX; }
-	s32 getTop() { return positiveY ? pos.y + radiusY : pos.y - radiusY; }
-	s32 getBottom() { return positiveY ? pos.y - radiusY : pos.y + radiusY; }
+	s32 left() { return pos.x - halfDim.w; }
+	s32 right() { return pos.x + halfDim.w; }
+	s32 top() { return positiveY ? pos.y + halfDim.h : pos.y - halfDim.h; }
+	s32 bottom() { return positiveY ? pos.y - halfDim.h : pos.y + halfDim.h; }
 	
-	void setLeft(s32 newLeft) { pos.x = newLeft + radiusX; }
-	void setTop(s32 newTop) { pos.y = positiveY ? newTop - radiusY : newTop + radiusY; }
+	v2i topLeft() { return v2i(left(), top()); }
 	
-	s32 getWidth() { return radiusX*2; }
-	s32 getHeight() { return radiusY*2; }
+	void setLeft(s32 newLeft) { pos.x = newLeft + halfDim.w; }
+	void setTop(s32 newTop) { pos.y = positiveY ? newTop - halfDim.h : newTop + halfDim.h; }
+	
+	s32 width() { return halfDim.w*2; }
+	s32 height() { return halfDim.h*2; }
+	v2i dim() { return halfDim*2; }
 };
 
 struct Rect2f
 {
 	v2f pos;
-	f32 radiusX;
-	f32 radiusY;
+	v2f halfDim;
 	
 	bool positiveY;
 	
+	Rect2f() : pos(v2f()), halfDim(v2f()) {}
 	Rect2f(f32 x, f32 y, f32 width, f32 height, bool upPositive = true)
 	{
-		pos = {x, y};
-		radiusX = width/2.0f;
-		radiusY = height/2.0f;
+		pos = v2f(x, y);
+		halfDim= v2f(width/2.0f, height/2.0f);
 		positiveY = upPositive;
 	}
 	Rect2f(v2f centre, f32 width, f32 height, bool upPositive = true)
 	{
 		pos = centre;
-		radiusX = width/2.0f;
-		radiusY = height/2.0f;
+		halfDim = v2f(width/2.0f, height/2.0f);
 		positiveY = upPositive;
 	}
 	Rect2f(v2f centre, v2f dim, bool upPositive = true)
 	{
 		pos = centre;
-		radiusX = dim.w/2.0f;
-		radiusY = dim.h/2.0f;
+		halfDim = dim/2.0f;
 		positiveY = upPositive;
 	}
 	
-	f32 getLeft() { return pos.x - radiusX; }
-	f32 getRight() { return pos.x + radiusX; }
-	f32 getTop() { return positiveY ? pos.y + radiusY : pos.y - radiusY; }
-	f32 getBottom() { return positiveY ? pos.y - radiusY : pos.y + radiusY; }
+	f32 left() { return pos.x - halfDim.w; }
+	f32 right() { return pos.x + halfDim.w; }
+	f32 top() { return positiveY ? pos.y + halfDim.h : pos.y - halfDim.h; }
+	f32 bottom() { return positiveY ? pos.y - halfDim.h : pos.y + halfDim.h; }
 	
-	void setLeft(f32 newLeft) { pos.x = newLeft + radiusX; }
-	void setTop(f32 newTop) { pos.y = positiveY ? newTop - radiusY : newTop + radiusY; }
+	v2f topLeft() { return v2f(left(), top()); }
 	
-	f32 getWidth() { return radiusX*2.0f; }
-	f32 getHeight() { return radiusY*2.0f; }
+	void setLeft(f32 newLeft) { pos.x = newLeft + halfDim.w; }
+	void setTop(f32 newTop) { pos.y = positiveY ? newTop - halfDim.h : newTop + halfDim.h; }
+	
+	f32 width() { return halfDim.w*2.0f; }
+	f32 height() { return halfDim.h*2.0f; }
+	v2f dim() { return halfDim*2.0f; }
 };
 
 //---------------------------------------------------------------------------
@@ -483,46 +518,46 @@ v4f::v4f(v3f v)
 //---------------------------------------------------------------------------
 // Vector operator overloads
 
-v2i operator+(v2i left, v2i right)
+static inline v2i operator+(v2i left, v2i right)
 {
 	v2i result;
 	result.x = left.x + right.x;
 	result.y = left.y + right.y;
 	return result;
 }
-v2i operator-(v2i left, v2i right)
+static inline v2i operator-(v2i left, v2i right)
 {
 	v2i result;
 	result.x = left.x - right.x;
 	result.y = left.y - right.y;
 	return result;
 }
-v2i operator*(v2i left, s32 right)
+static inline v2i operator*(v2i left, s32 right)
 {
 	v2i result;
 	result.x = left.x * right;
 	result.y = left.y * right;
 	return result;
 }
-v2i operator*(v2i left, u32 right)
+static inline v2i operator*(v2i left, u32 right)
 {
 	return left * (s32)right;
 }
-v2i operator*(v2i left, f32 right)
+static inline v2i operator*(v2i left, f32 right)
 {
 	v2i result;
 	result.x = (s32)(left.x * right);
 	result.y = (s32)(left.y * right);
 	return result;
 }
-v2i operator/(v2i left, s32 right)
+static inline v2i operator/(v2i left, s32 right)
 {
 	v2i result;
 	result.x = left.x / right;
 	result.y = left.y / right;
 	return result;
 }
-v2i operator/(v2i left, f32 right)
+static inline v2i operator/(v2i left, f32 right)
 {
 	v2i result;
 	result.x = (s32)(left.x / right);
@@ -530,35 +565,35 @@ v2i operator/(v2i left, f32 right)
 	return result;
 }
 
-v2f operator+(v2f left, v2f right)
+static inline v2f operator+(v2f left, v2f right)
 {
 	v2f result;
 	result.x = left.x + right.x;
 	result.y = left.y + right.y;
 	return result;
 }
-v2f operator-(v2f left, v2f right)
+static inline v2f operator-(v2f left, v2f right)
 {
 	v2f result;
 	result.x = left.x - right.x;
 	result.y = left.y - right.y;
 	return result;
 }
-v2f operator*(v2f left, f32 right)
+static inline v2f operator*(v2f left, f32 right)
 {
 	v2f result;
 	result.x = left.x * right;
 	result.y = left.y * right;
 	return result;
 }
-v2f operator*(f32 left, v2f right)
+static inline v2f operator*(f32 left, v2f right)
 {
 	v2f result;
 	result.x = left*right.x;
 	result.y = left*right.y;
 	return result;
 }
-v2f operator/(v2f left, f32 right)
+static inline v2f operator/(v2f left, f32 right)
 {
 	v2f result;
 	result.x = left.x / right;
@@ -918,17 +953,17 @@ static inline v3f clampV3f(v3f v, f32 min, f32 max)
 
 static inline bool pointInRect(v2i point, Rect2 rect)
 {
-	return point.x > rect.pos.x - rect.radiusX &&
-		point.x < rect.pos.x + rect.radiusX &&
-		point.y < rect.pos.y + rect.radiusY &&
-		point.y > rect.pos.y - rect.radiusY;
+	return point.x > rect.pos.x - rect.halfDim.w &&
+		point.x < rect.pos.x + rect.halfDim.w &&
+		point.y < rect.pos.y + rect.halfDim.h &&
+		point.y > rect.pos.y - rect.halfDim.h;
 }
 static inline bool pointInRect(v2f point, Rect2f rect)
 {
-	return point.x > rect.pos.x - rect.radiusX &&
-		point.x < rect.pos.x + rect.radiusX &&
-		point.y < rect.pos.y + rect.radiusY &&
-		point.y > rect.pos.y - rect.radiusY;
+	return point.x > rect.pos.x - rect.halfDim.w &&
+		point.x < rect.pos.x + rect.halfDim.w &&
+		point.y < rect.pos.y + rect.halfDim.h &&
+		point.y > rect.pos.y - rect.halfDim.h;
 }
 
 //TODO(denis): for now this only checks the smallest rect that contains the given circle

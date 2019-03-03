@@ -97,6 +97,9 @@ static void drawBitmap(Bitmap* buffer, Bitmap* bitmap, v2i pos)
 		u32 col = colOffset;
 		for (s32 x = startX; x < endX; ++x, ++col)
 		{
+			// TODO(denis): this is all pretty slow,
+			// probably because of the double conversion. First u32->f32 then f32->u32
+			
 			u32* inPixel = GET_PIXEL(bitmap, col, row);
 			u32* outPixel = GET_PIXEL(buffer, x, y);
 			
@@ -118,10 +121,10 @@ static void drawBitmap(Bitmap* buffer, Bitmap* bitmap, v2i pos)
 			f32 b = outB*(1.0f - inAFraction) + inB;
 			f32 a = inAFraction + outAFraction*(1.0f - inAFraction);
 			
-			u8 rByte = (u8)r;
-			u8 gByte = (u8)g;
-			u8 bByte = (u8)b;
-			u8 aByte = (u8)(a * 255.0f);
+			u32 rByte = (u32)r;
+			u32 gByte = (u32)g;
+			u32 bByte = (u32)b;
+			u32 aByte = (u32)(a * 255.0f);
 			
 			u32 colour = (aByte << 24) | (rByte << 16) | (gByte << 8) | (bByte);
 			
@@ -138,13 +141,13 @@ static inline void drawBitmap(Bitmap* buffer, Bitmap* bitmap, Rect2 rect)
 	drawBitmap(buffer, bitmap, rect.pos);
 }
 
-static inline void fillBuffer(Bitmap* buffer, u32 colour)
+static inline void fillBitmap(Bitmap* bitmap, u32 colour)
 {
-	for (u32 row = 0; row < buffer->height; ++row)
+	for (u32 row = 0; row < bitmap->height; ++row)
 	{
-		for (u32 col = 0; col < buffer->width; ++col)
+		for (u32 col = 0; col < bitmap->width; ++col)
 		{
-			drawPoint(buffer, col, row, colour);
+			drawPoint(bitmap, col, row, colour);
 		}
 	}
 }
@@ -173,7 +176,7 @@ static void drawRect(Bitmap* buffer, s32 x, s32 y, s32 width, s32 height, u32 co
 }
 static inline void drawRect(Bitmap* buffer, Rect2 rect, u32 colour)
 {
-	drawRect(buffer, rect.getLeft(), rect.getTop(), rect.getWidth(), rect.getHeight(), colour);
+	drawRect(buffer, rect.left(), rect.top(), rect.width(), rect.height(), colour);
 }
 
 static void drawRectOutline(Bitmap* buffer, s32 x, s32 y, s32 width, s32 height,
@@ -206,7 +209,7 @@ static void drawRectOutline(Bitmap* buffer, s32 x, s32 y, s32 width, s32 height,
 }
 static inline void drawRectOutline(Bitmap* buffer, Rect2 rect, u32 colour, u32 borderWidth)
 {
-	drawRectOutline(buffer, rect.getLeft(), rect.getTop(), rect.getWidth(), rect.getHeight(),
+	drawRectOutline(buffer, rect.left(), rect.top(), rect.width(), rect.height(),
 					colour, borderWidth);
 }
 

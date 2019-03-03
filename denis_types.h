@@ -37,11 +37,11 @@ typedef enum { FALSE, TRUE } bool;
 
 #if defined(DEBUG)
 #define ASSERT(x)				\
-	do							\
-	{							\
-	  if (!(x))					\
-		  *(s8*)0 = 0;		\
-	} while(false)
+do							\
+{							\
+	if (!(x))					\
+	*(s8*)0 = 0;		\
+} while(false)
 
 #else
 #define ASSERT(x)
@@ -52,5 +52,8 @@ typedef enum { FALSE, TRUE } bool;
 #define GIGABYTE(num) (MEGABYTE(num) * (u64)1024)
 
 #define ARRAY_COUNT(array) (sizeof(array)/sizeof((array)[0]))
+
+// copied from float.h
+#define F32_MAX 3.402823466e+38F
 
 #endif
