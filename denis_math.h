@@ -55,6 +55,7 @@ static inline v2f normalize(v2f v);
 static inline v2i normalize(v2i v);
 static inline v3f normalize(v3f v);
 
+static inline f32 dot(v2f v1, v2f v2);
 static inline f32 dot(v3f v1, v3f v2);
 
 static inline v3i cross(v3i v1, v3i v2);
@@ -119,6 +120,12 @@ union v2f
 	{
 		this->x = this->x - right.x;
 		this->y = this->y - right.y;
+		return *this;
+	}
+	v2f& operator*=(f32 right)
+	{
+		this->x = this->x * right;
+		this->y = this->y * right;
 		return *this;
 	}
 };
@@ -1018,6 +1025,11 @@ static inline v4f cross(v4f v1, v4f v2)
 	return result;
 }
 
+static inline f32 dot(v2f v1, v2f v2)
+{
+	f32 result = v1.x*v2.x + v1.y*v2.y;
+	return result;
+}
 static inline f32 dot(v3f v1, v3f v2)
 {
 	f32 result = v1.x*v2.x + v1.y*v2.y + v1.z*v2.z;

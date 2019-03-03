@@ -11,7 +11,7 @@ struct Controller
     bool downPressed;
     bool leftPressed;
     bool rightPressed;
-
+	
     bool actionPressed;
 	bool actionWasPressed;
 };
@@ -23,7 +23,7 @@ struct Mouse
     bool leftPressed;
     bool leftWasPressed;
     v2i leftClickStartPos;
-
+	
     bool rightPressed;
     bool rightWasPressed;
     v2i rightClickStartPos;
