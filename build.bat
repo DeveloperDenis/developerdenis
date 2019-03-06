@@ -53,7 +53,7 @@ if exist %settings_file% (
 del *.pdb > NUL 2> NUL
 
 REM build main exe
-cl %flags% %includes% %denis_library%\win32_layer.cpp /Fe%exe_file_name% /link %linker_flags% user32.lib Gdi32.lib Shcore.lib Mfplat.lib Mf.lib Mfuuid.lib Shlwapi.lib Ole32.lib
+cl %flags% %includes% %denis_library%\win32_layer.cpp /Fe%exe_file_name% /link %linker_flags% user32.lib Gdi32.lib Shcore.lib Winmm.lib Mfplat.lib Mf.lib Mfuuid.lib Shlwapi.lib Ole32.lib
 
 REM build DLL
 echo FOO > pdb.lock

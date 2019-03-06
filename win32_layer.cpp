@@ -4,6 +4,7 @@
 
 #include "Strsafe.h"
 #include "Windowsx.h"
+#include "timeapi.h"
 
 #include "mfapi.h"
 #include "mfidl.h"
@@ -641,6 +642,9 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE, LPSTR /*cmdLine*/, int)
     //TODO(denis): should probably let the user set the size of this
     void* mainMemory = VirtualAlloc(0, GIGABYTE(1), MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE);
 	
+	u32 sleepGranularity = 1; // in ms
+	bool granularSleep = timeBeginPeriod(sleepGranularity) == TIMERR_NOERROR;
+	
     LARGE_INTEGER countFrequency;
     QueryPerformanceFrequency(&countFrequency); //NOTE(denis): counts/second
 	
@@ -663,7 +667,8 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE, LPSTR /*cmdLine*/, int)
 	_platform.mediaPlayFile = win32_mediaPlayFile;
 	_platform.mediaGetState = win32_mediaGetState;
 	
-	f64 timeS = 0.0;
+	f32 timeS = 0.0f;
+	f32 secondsPerFrame = 1.0f / (f32)FPS_TARGET;
 	
 	appInit(_platform, (Memory*)mainMemory, &screen);
 	
@@ -715,17 +720,27 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE, LPSTR /*cmdLine*/, int)
 		LARGE_INTEGER currentCounts;
 		QueryPerformanceCounter(&currentCounts);
 	    u64 timePassed = currentCounts.QuadPart - lastCounts.QuadPart;
-	    timeS = (f64)timePassed / (f64)countFrequency.QuadPart;
+	    timeS = (f32)timePassed / (f32)countFrequency.QuadPart;
 		
-		//TODO(denis): probably don't do a busy loop
 		//NOTE(denis): the epsilon is an attempt to lessen the effects of random spikes
-		f32 epsilon = 0.01f;
-		while (timeS < (f64)1/(f64)FPS_TARGET - epsilon)
+		//f32 epsilon = 0.01f;
+		if (timeS < secondsPerFrame)
 		{
-			QueryPerformanceCounter(&currentCounts);
-			timePassed = currentCounts.QuadPart - lastCounts.QuadPart;
-			timeS = (f64)timePassed / (f64)countFrequency.QuadPart;
+			u32 millisecondsToSleep = (u32)((secondsPerFrame - timeS)*1000.0f);
+			if (granularSleep && millisecondsToSleep > 0)
+			{
+				Sleep(millisecondsToSleep);
+				
+			}
+			
+			while (timeS < secondsPerFrame)
+			{
+				QueryPerformanceCounter(&currentCounts);
+				timePassed = currentCounts.QuadPart - lastCounts.QuadPart;
+				timeS = (f32)timePassed / (f32)countFrequency.QuadPart;
+			}
 		}
+		
 #if 0
 		char timeBuffer[100];
 		StringCbPrintf(timeBuffer, 100, "%f\n", timeMs);
@@ -740,7 +755,7 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE, LPSTR /*cmdLine*/, int)
 		bool disableRightWasPressed = _input.mouse.rightWasPressed && oldInput.mouse.rightPressed;
 		bool disableActionWasPressed = _input.controller.actionWasPressed && oldInput.controller.actionPressed;
 		
-	    oldInput = _input;
+		oldInput = _input;
 		if (disableLeftWasPressed)
 		{
 			_input.mouse.leftWasPressed = false;
@@ -753,9 +768,10 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE, LPSTR /*cmdLine*/, int)
 		}
 		if (disableActionWasPressed)
 			_input.controller.actionWasPressed = false;
-    }
+	}
 	
-    DestroyWindow(_windowHandle);
+	timeEndPeriod(sleepGranularity);
+	DestroyWindow(_windowHandle);
 	
-    return 0;
+	return 0;
 }

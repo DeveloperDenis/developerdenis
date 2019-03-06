@@ -195,6 +195,7 @@ static void drawRectOutline(Bitmap* buffer, s32 x, s32 y, s32 width, s32 height,
 	
 	// TODO(denis): it would probably be faster to split this into 4 for loops,
 	// one for each side of the border
+	// or just call drawRectangle 4 times?
 	for (u32 row = startY; row < endY; ++row)
 	{
 		for (u32 col = startX; col < endX; ++col)
