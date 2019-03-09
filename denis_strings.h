@@ -12,7 +12,7 @@
 static inline bool charInString(char c, char* string)
 {
 	bool result = false;
-
+	
 	if (string)
 	{
 		for (int i = 0; string[i] != 0 && !result; ++i)
@@ -30,14 +30,14 @@ static inline bool charArraysEqual(char* array1, int size1, char* array2, int si
 {
 	bool areEqual = TRUE;
 	int arraySize = size1 < size2 ? size1 : size2;
-
+	
 	int i;
 	for (i = 0; i < arraySize && areEqual; ++i)
 	{
 		if (array1[i] != array2[i])
 			areEqual = FALSE;
 	}
-
+	
 	return areEqual;
 }
 
@@ -60,10 +60,10 @@ static inline bool stringsEqual(char* string1, char* string2)
 	{
 		if (string1[i] != string2[i])
 			areEqual = FALSE;
-
+		
 		++i;
 	}
-
+	
 	if (string1[i] != string2[i])
 		areEqual = FALSE;
 	
@@ -73,7 +73,7 @@ static inline bool stringsEqual(char* string1, char* string2)
 static inline bool stringsEqualIgnoreCase(char* string1, char* string2)
 {
 	bool areEqual = TRUE;
-
+	
 	
 	int i = 0;
 	while (string1[i] != 0 && string2[i] != 0 && areEqual)
@@ -91,10 +91,10 @@ static inline bool stringsEqualIgnoreCase(char* string1, char* string2)
 			else
 				areEqual = FALSE;
 		}
-
+		
 		++i;
 	}
-
+	
 	if ((string1[i] == 0 && string2[i] != 0) ||
 		(string1[i] != 0 && string2[i] == 0))
 	{
@@ -117,27 +117,27 @@ static char* trimString(char* string)
 		int i = 0;
 		while (string[i] != 0 && (string[i] == ' ' || string[i] == '\n' || string[i] == '\t'))
 			++i;
-	
+		
 		if (string[i] != 0)
 		{
 			result = string + i;
-
+			
 			int lastNonBlankIndex = i;
 			while (string[i] != 0)
 			{
 				if (string[i] != ' ' && string[i] != '\n' && string[i] != '\t')
 					lastNonBlankIndex = i;
-
+				
 				++i;
 			}
-		
+			
 			if (lastNonBlankIndex < i - 1)
 				string[lastNonBlankIndex+1] = 0;
 		}
 		else
 			result = NULL;
 	}
-
+	
 	return result;
 }
 
@@ -145,7 +145,7 @@ static char* trimString(char* string)
 static inline int getStringSize(char* string)
 {
 	int result = 0;
-
+	
 	while (string && string[result] != 0)
 	{
 		++result;
@@ -158,11 +158,11 @@ static inline int getStringSize(char* string)
 static inline char* createStringFromArray(char* array, int size)
 {
 	char* result = NULL;
- 
+	
 	if (array)
 	{
 		result = (char*)HEAP_ALLOC(size+1);
-	
+		
 		int i;
 		for (i = 0; i < size; ++i)
 		{
@@ -180,16 +180,16 @@ static inline char* duplicateString(char *string)
 	if (string)
 	{
 		u32 numChars = getStringSize(string);
-
+		
 		result = (char*)HEAP_ALLOC(numChars+1);
-
+		
 		for (u32 i = 0; i < numChars; ++i)
 		{
 			result[i] = string[i];
 		}
 		result[numChars] = 0;
 	}
-
+	
 	return result;
 }
 
@@ -197,19 +197,22 @@ struct StringTokens
 {
 	char** tokens;
 	u32 count;
+	
+	bool stringDuplicated;
 };
 
-static void free(StringTokens* stringTokens)
+static void freeTokens(StringTokens* stringTokens)
 {
-	if (!stringTokens)
+	if (!stringTokens || stringTokens->count == 0 || !stringTokens->tokens)
 		return;
 	
-	for (u32 i = 0; i < stringTokens->count; ++i)
-	{
-		free(stringTokens->tokens[i]);
-	}
-
+	if (stringTokens->stringDuplicated)
+		free(stringTokens->tokens[0]);
+	
 	free(stringTokens->tokens);
+	
+	stringTokens->tokens = 0;
+	stringTokens->count = 0;
 }
 
 // modifies the input string to insert '\0' wherever the separator appeared
@@ -218,7 +221,8 @@ static void free(StringTokens* stringTokens)
 static StringTokens tokenizeStringInPlace(char* string, char separator)
 {
 	StringTokens result = {};
-
+	result.stringDuplicated = false;
+	
 	s32 lastCharIndex = -1;
 	
 	for (s32 i = 0; string[i] != 0; ++i)
@@ -229,43 +233,47 @@ static StringTokens tokenizeStringInPlace(char* string, char separator)
 				++result.count;
 			else if (lastCharIndex != i - 1)
 				++result.count;
-
+			
 			lastCharIndex = i;
 		}
 	}
 	
 	result.tokens = (char**)HEAP_ALLOC(result.count*sizeof(char*));
-
+	
 	int charIndex = 0;
 	for (u32 i = 0; i < result.count; ++i)
 	{
 		while(string[charIndex] != 0 && string[charIndex] == separator)
 			++charIndex;
-
+		
 		if (string[charIndex] == 0)
 			break;
-
+		
 		result.tokens[i] = string + charIndex;
 		++charIndex;
-
+		
 		while(string[charIndex] != 0 && string[charIndex] != separator)
 			++charIndex;
-
+		
 		if (string[charIndex] != 0)
 			string[charIndex++] = 0;
 		else
 			break;
 	}
-
+	
 	return result;
 }
 
 static StringTokens tokenizeString(char* string, char separator)
 {
 	char* stringCopy = duplicateString(string);
-	return tokenizeStringInPlace(stringCopy, separator);
+	
+	StringTokens result = tokenizeStringInPlace(stringCopy, separator);
+	result.stringDuplicated = true;
+	
+	return result;
 }
- 
+
 //NOTE(denis): assumes that destination is big enough to hold all of source's
 // characters
 static inline void copyIntoString(char *destination, char *source)
@@ -278,7 +286,7 @@ static inline void copyIntoString(char *destination, char *source)
 		}
 	}
 }
- 
+
 //NOTE(denis): copies a portion of source into destination,
 // the first character copied is index = beginning
 // and the last character copied is at index = end
@@ -286,7 +294,7 @@ static inline void copyIntoString(char *destination, char *source,
 								  u32 beginning, u32 end)
 {
 	u32 destinationIndex = 0;
-	 
+	
 	if (destination && source && beginning < end)
 	{
 		for (u32 i = beginning; i <= end; ++i)
@@ -295,32 +303,32 @@ static inline void copyIntoString(char *destination, char *source,
 		}
 	}
 }
- 
+
 //NOTE(denis): returns a new string which is a+b
 static char* concatStrings(char *a, char *b)
 {
 	u32 sizeOfA = 0;
 	u32 sizeOfB = 0;
 	char *result = 0;
- 
+	
 	if (a && b)
 	{
 		for (u32 i = 0; a[i] != 0; ++i)
 		{
 			++sizeOfA;
 		}
- 
+		
 		for (u32 i = 0; b[i] != 0; ++i)
 		{
 			++sizeOfB;
 		}
- 
+		
 		result = (char*)HEAP_ALLOC(sizeOfA+sizeOfB+1);
- 
+		
 		copyIntoString(result, a);
 		copyIntoString(result+sizeOfA, b);
 	}
-	 
+	
 	return result;
 }
 
@@ -343,10 +351,10 @@ static bool toString(s32 num, char* buffer, u32 maxLength)
 		{
 			buffer[(length - 1) - i] = '0' + (temp % 10);
 		}
-
+		
 		success = true;
 	}
-
+	
 	return success;
 }
 
@@ -354,7 +362,7 @@ static char* toString(s32 num)
 {
 	char* result = 0;
 	u32 length = 0;
-
+	
 	//TODO(denis): probably not a huge deal, but this is computed twice
 	s32 temp = num;
 	while (temp > 0)
@@ -362,7 +370,7 @@ static char* toString(s32 num)
 		temp /= 10;
 		++length;
 	}
-
+	
 	if (length > 0)
 	{
 		result = (char*)HEAP_ALLOC(length+1);
@@ -387,7 +395,7 @@ static f32 parseF32String(char* string)
 	
 	bool readingDecimalPart = false;
 	bool isNegative = false;
-
+	
 	if (!string)
 		return 0;
 	
@@ -414,14 +422,14 @@ static f32 parseF32String(char* string)
 		}
 		else
 			break;
-
+		
 		++i;
 	}
-
+	
 	f32 result = 0.0f;
 	result += intPart;
 	result += (f32)realPart/pow(10.0f, (f32)numDecimalDigits);
-
+	
 	if (isNegative)
 		result = -result;
 	
@@ -431,7 +439,7 @@ static f32 parseF32String(char* string)
 static u32 parseU32String(char* string)
 {
 	u32 result = 0;
-
+	
 	if (!string)
 		return result;
 	
@@ -445,7 +453,7 @@ static u32 parseU32String(char* string)
 		}
 		else
 			break;
-
+		
 		++i;
 	}
 	
@@ -456,7 +464,7 @@ static s32 parseS32String(char* string)
 {
 	s32 result = 0;
 	bool isNegative = false;
-
+	
 	if (!string)
 		return result;
 	
@@ -472,10 +480,10 @@ static s32 parseS32String(char* string)
 		}
 		else
 			break;
-
+		
 		++i;
 	}
-
+	
 	if (isNegative)
 		result = -result;
 	
