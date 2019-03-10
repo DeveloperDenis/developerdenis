@@ -138,7 +138,7 @@ static inline void drawBitmap(Bitmap* buffer, Bitmap* bitmap, u32 x, u32 y)
 }
 static inline void drawBitmap(Bitmap* buffer, Bitmap* bitmap, Rect2 rect)
 {
-	drawBitmap(buffer, bitmap, rect.pos);
+	drawBitmap(buffer, bitmap, rect.topLeft());
 }
 
 static inline void fillBitmap(Bitmap* bitmap, u32 colour)
