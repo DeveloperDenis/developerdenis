@@ -13,8 +13,8 @@ struct Bitmap
 {
     u32* pixels;
 	
-	u32 width;
-    u32 height;
+	v2i dim;
+	v2i pos;
 	
 	// number of bytes in a row
 	u32 stride;
@@ -25,23 +25,25 @@ struct Bitmap
  */
 
 //TODO(denis): use memory from a pre-allocated pool, rather than dynamic allocation?
-static inline Bitmap allocBitmap(u32 width, u32 height)
+static inline Bitmap allocBitmap(s32 width, s32 height)
 {
 	Bitmap result = {};
 	
-	result.width = width;
-	result.height = height;
+	result.dim = v2i(width, height);
 	result.stride = width * sizeof(u32);
 	result.pixels = (u32*)HEAP_ALLOC(width*height*sizeof(u32));
 	
 	return result;
 }
+static inline Bitmap allocBitmap(v2i dim)
+{
+	return allocBitmap(dim.w, dim.h);
+}
 
 static inline void freeBitmap(Bitmap* bitmap)
 {
 	HEAP_FREE(bitmap->pixels);
-	bitmap->width = 0;
-	bitmap->height = 0;
+	bitmap->dim = v2i(0, 0);
 	bitmap->stride = 0;
 }
 
@@ -67,7 +69,7 @@ static inline u32 packColour(v3f colour)
 
 static inline void drawPoint(Bitmap* buffer, s32 x, s32 y, u32 colour)
 {
-	if (x < 0 || x >= (s32)buffer->width || y < 0 || y >= (s32)buffer->height)
+	if (x < 0 || x >= buffer->dim.w || y < 0 || y >= buffer->dim.h)
 		return;
 	
 	*(GET_PIXEL(buffer, x, y)) = colour;
@@ -83,10 +85,10 @@ static inline void drawPoint(Bitmap* buffer, v2i point, u32 colour)
 static void drawBitmap(Bitmap* buffer, Bitmap* bitmap, v2i pos)
 {
 	s32 startY = MAX(pos.y, 0);
-	s32 endY = MIN(pos.y + (s32)bitmap->height, (s32)buffer->height);
+	s32 endY = MIN(pos.y + bitmap->dim.h, buffer->dim.h);
 	
 	s32 startX = MAX(pos.x, 0);
-	s32 endX = MIN(pos.x + (s32)bitmap->width, (s32)buffer->width);
+	s32 endX = MIN(pos.x + bitmap->dim.w, buffer->dim.w);
 	
 	s32 colOffset = MAX(0, 0 - pos.x);
 	s32 rowOffset = MAX(0, 0 - pos.y);
@@ -143,9 +145,9 @@ static inline void drawBitmap(Bitmap* buffer, Bitmap* bitmap, Rect2 rect)
 
 static inline void fillBitmap(Bitmap* bitmap, u32 colour)
 {
-	for (u32 row = 0; row < bitmap->height; ++row)
+	for (u32 row = 0; row < (u32)bitmap->dim.h; ++row)
 	{
-		for (u32 col = 0; col < bitmap->width; ++col)
+		for (u32 col = 0; col < (u32)bitmap->dim.w; ++col)
 		{
 			drawPoint(bitmap, col, row, colour);
 		}
@@ -163,8 +165,8 @@ static void drawRect(Bitmap* buffer, s32 x, s32 y, s32 width, s32 height, u32 co
 	u32 startX = MAX(0, x);
 	u32 startY = MAX(0, y);
 	
-	u32 endX = MIN((s32)buffer->width, x + width);
-	u32 endY = MIN((s32)buffer->height, y + height);
+	u32 endX = MIN(buffer->dim.w, x + width);
+	u32 endY = MIN(buffer->dim.h, y + height);
 	
 	for (u32 row = startY; row < endY; ++row)
 	{
@@ -190,8 +192,8 @@ static void drawRectOutline(Bitmap* buffer, s32 x, s32 y, s32 width, s32 height,
 	u32 startX = MAX(0, x);
 	u32 startY = MAX(0, y);
 	
-	u32 endX = MIN((s32)buffer->width, x + width);
-	u32 endY = MIN((s32)buffer->height, y + height);
+	u32 endX = MIN(buffer->dim.w, x + width);
+	u32 endY = MIN(buffer->dim.h, y + height);
 	
 	// TODO(denis): it would probably be faster to split this into 4 for loops,
 	// one for each side of the border
@@ -223,8 +225,8 @@ static void drawCircle(Bitmap* buffer, s32 x, s32 y, s32 radius, u32 colour)
 	s32 startX = MAX(x - radius, 0);
 	s32 startY = MAX(y - radius, 0);
 	
-	s32 endX = MIN(x + radius, (s32)buffer->width);
-	s32 endY = MIN(y + radius, (s32)buffer->height);
+	s32 endX = MIN(x + radius, buffer->dim.w);
+	s32 endY = MIN(y + radius, buffer->dim.h);
 	
 	for (s32 row = startY; row < endY; ++row)
 	{

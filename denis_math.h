@@ -411,8 +411,8 @@ struct Rect2f
 
 v2i::v2i()
 {
-	this->x = x;
-	this->y = y;
+	this->x = 0;
+	this->y = 0;
 }
 v2i::v2i(s32 x, s32 y)
 {

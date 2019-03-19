@@ -26,10 +26,14 @@ typedef APP_UPDATE_CALL(*appUpdateCallPtr);
 #define APP_INIT_FUNCTION_NAME "appInit"
 #define APP_UPDATE_FUNCTION_NAME "appUpdate"
 
+#define DEBUG_PADDING 30
+
 struct BackBuffer
 {
     void* data;
     BITMAPINFO bitmapInfo;
+	v2i pos;
+	v2i dim;
 };
 
 static HWND _windowHandle;
@@ -324,14 +328,20 @@ static LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, W
 			}
 			
 			_backBuffer.bitmapInfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+#if defined(DEBUG)
+			_backBuffer.bitmapInfo.bmiHeader.biWidth = clientRect.right - DEBUG_PADDING;
+			_backBuffer.bitmapInfo.bmiHeader.biHeight = -(clientRect.bottom - DEBUG_PADDING);
+#elif
 			_backBuffer.bitmapInfo.bmiHeader.biWidth = clientRect.right;
 			_backBuffer.bitmapInfo.bmiHeader.biHeight = -clientRect.bottom; //NOTE(denis): positive means origin in lower-left, negative means origin in upper-left
+#endif
+			_backBuffer.dim = v2i(_backBuffer.bitmapInfo.bmiHeader.biWidth, -_backBuffer.bitmapInfo.bmiHeader.biHeight);
 			_backBuffer.bitmapInfo.bmiHeader.biPlanes = 1;
 			_backBuffer.bitmapInfo.bmiHeader.biBitCount = 32;
 			_backBuffer.bitmapInfo.bmiHeader.biCompression = BI_RGB;
 			
 			//TODO(denis): error checking?
-			_backBuffer.data = HEAP_ALLOC(_windowWidth*_windowHeight*(_backBuffer.bitmapInfo.bmiHeader.biBitCount/8));
+			_backBuffer.data = HEAP_ALLOC(_backBuffer.dim.w*_backBuffer.dim.h*(_backBuffer.bitmapInfo.bmiHeader.biBitCount/8));
 			
 			if (_mediaSession)
 			{
@@ -349,8 +359,9 @@ static LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, W
 			PAINTSTRUCT ps;
 			HDC deviceContext = BeginPaint(windowHandle, &ps);
 			
-			StretchDIBits(deviceContext, 0, 0, _windowWidth, _windowHeight,
-						  0, 0, _backBuffer.bitmapInfo.bmiHeader.biWidth, ABS_VALUE(_backBuffer.bitmapInfo.bmiHeader.biHeight),
+			StretchDIBits(deviceContext, 
+						  _backBuffer.pos.x, _backBuffer.pos.y, _backBuffer.dim.w, _backBuffer.dim.h,
+						  0, 0, _backBuffer.dim.w, _backBuffer.dim.h,
 						  _backBuffer.data, &_backBuffer.bitmapInfo, DIB_RGB_COLORS, SRCCOPY);
 			
 			RECT windowRect = { 0, 0, (LONG)_windowWidth, (LONG)_windowHeight };
@@ -417,13 +428,13 @@ static LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, W
 		
 		case WM_MOUSEMOVE:
 		{
-			v2i mousePos = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+			v2i mousePos = v2i(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)) - _backBuffer.pos;
 			_input.mouse.pos = mousePos;
 		} break;
 		
 		case WM_LBUTTONDOWN:
 		{
-			v2i mousePos = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+			v2i mousePos = v2i(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)) - _backBuffer.pos;
 			_input.mouse.pos = mousePos;
 			_input.mouse.leftClickStartPos = mousePos;
 			
@@ -433,7 +444,7 @@ static LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, W
 		
 		case WM_LBUTTONUP:
 		{
-			v2i mousePos = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+			v2i mousePos = v2i(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)) - _backBuffer.pos;
 			_input.mouse.pos = mousePos;
 			
 			_input.mouse.leftWasPressed = true;
@@ -442,7 +453,7 @@ static LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, W
 		
 		case WM_RBUTTONDOWN:
 		{
-			v2i mousePos = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+			v2i mousePos = v2i(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)) - _backBuffer.pos;
 			_input.mouse.pos = mousePos;
 			_input.mouse.rightClickStartPos = mousePos;
 			
@@ -452,7 +463,7 @@ static LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, W
 		
 		case WM_RBUTTONUP:
 		{
-			v2i mousePos = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+			v2i mousePos = v2i(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)) - _backBuffer.pos;
 			_input.mouse.pos = mousePos;
 			
 			_input.mouse.rightWasPressed = true;
@@ -461,6 +472,7 @@ static LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, W
 		
 		//NOTE(denis): used for touch and pen input
 		
+		// TODO(denis): will need to update all this with offset from game screen pos
 		case WM_POINTERUPDATE:
 		{
 			u32 pointerID = GET_POINTERID_WPARAM(wParam);
@@ -580,9 +592,7 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE, LPSTR /*cmdLine*/, int)
     windowClass.hInstance = instance;
     windowClass.hCursor = LoadCursor(0, IDC_ARROW);
     windowClass.lpszClassName = "win32WindowClass";
-	
-	//TODO(denis): is this needed, or wanted?
-    //windowClass.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+    windowClass.hbrBackground = (HBRUSH)(COLOR_BACKGROUND);
 	
     if (!RegisterClassEx(&windowClass))
     {
@@ -596,7 +606,16 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE, LPSTR /*cmdLine*/, int)
 		windowStyles = windowStyles ^ (WS_THICKFRAME | WS_MAXIMIZEBOX);
     }
 	
-    RECT windowRect = {0, 0, (LONG)WINDOW_WIDTH, (LONG)WINDOW_HEIGHT};
+	_backBuffer.dim = v2i(WINDOW_WIDTH, WINDOW_HEIGHT);
+	v2i desiredClientDim = _backBuffer.dim;
+	
+#if defined(DEBUG)
+	desiredClientDim.w += DEBUG_PADDING;
+	desiredClientDim.h += DEBUG_PADDING;
+	_backBuffer.pos = v2i(DEBUG_PADDING/2, DEBUG_PADDING/2);
+#endif
+	
+    RECT windowRect = {0, 0, (LONG)desiredClientDim.w, (LONG)desiredClientDim.h};
     AdjustWindowRectEx(&windowRect, WS_OVERLAPPEDWINDOW, FALSE, 0);
 	
 	u32 windowWidth = windowRect.right - windowRect.left;
@@ -660,9 +679,9 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE, LPSTR /*cmdLine*/, int)
 	
 	Bitmap screen;
 	screen.pixels = (u32*)_backBuffer.data;
-	screen.width = _backBuffer.bitmapInfo.bmiHeader.biWidth;
-	screen.height = ABS_VALUE(_backBuffer.bitmapInfo.bmiHeader.biHeight);
-	screen.stride = screen.width*sizeof(u32);
+	screen.pos = _backBuffer.pos;
+	screen.dim = _backBuffer.dim;
+	screen.stride = screen.dim.w*sizeof(u32);
 	
 	_platform.mediaPlayFile = win32_mediaPlayFile;
 	_platform.mediaGetState = win32_mediaGetState;
@@ -708,9 +727,9 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE, LPSTR /*cmdLine*/, int)
 		}
 		
 		screen.pixels = (u32*)_backBuffer.data;
-		screen.width = _backBuffer.bitmapInfo.bmiHeader.biWidth;
-		screen.height = ABS_VALUE(_backBuffer.bitmapInfo.bmiHeader.biHeight);
-		screen.stride = screen.width*sizeof(u32);
+		screen.pos = _backBuffer.pos;
+		screen.dim = _backBuffer.dim;
+		screen.stride = screen.dim.w*sizeof(u32);
 		
 	    appUpdate(_platform, (Memory*)mainMemory, &screen, &_input, (f32)timeS);
 		
