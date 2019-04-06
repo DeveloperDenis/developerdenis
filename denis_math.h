@@ -32,13 +32,13 @@ union v4f;
 
 struct Matrix4f;
 
-struct Rect2;
+struct Rect2i;
 struct Rect2f;
 
 //----------------------------------------------------------------------------
 // Functions Declarations:
 
-static inline bool pointInRect(v2i point, Rect2 rect);
+static inline bool pointInRect(v2i point, Rect2i rect);
 static inline bool pointInRect(v2f point, Rect2f rect);
 
 static inline bool pointInCircle(v2i point, v2i pos, s32 radius);
@@ -47,9 +47,13 @@ static inline bool pointInCircle(v2f point, v2f pos, s32 radius);
 static inline f32 slope(v2i point1, v2i point2);
 static inline f32 inverseSlope(v2i point1, v2i point2);
 
-static inline f32 magnitude(v2f v);
-static inline f32 magnitude(v2i v);
-static inline f32 magnitude(v3f v);
+static inline f32 lengthSquared(v2f v);
+static inline f32 lengthSquared(v2i v);
+static inline f32 lengthSquared(v3f v);
+
+static inline f32 length(v2f v);
+static inline f32 length(v2i v);
+static inline f32 length(v3f v);
 
 static inline v2f normalize(v2f v);
 static inline v2i normalize(v2i v);
@@ -323,26 +327,26 @@ struct Matrix4f
 //---------------------------------------------------------------------------
 // Rectangle types:
 
-struct Rect2
+struct Rect2i
 {
 	v2i pos;
 	v2i halfDim;
 	
 	bool positiveY;
 	
-	Rect2(s32 x, s32 y, s32 width, s32 height, bool upPositive = true)
+	Rect2i(s32 x, s32 y, s32 width, s32 height, bool upPositive = true)
 	{
 		pos = v2i(x, y);
 		halfDim = v2i(width/2, height/2);
 		positiveY = upPositive;
 	}
-	Rect2(v2i centre, s32 width, s32 height, bool upPositive = true)
+	Rect2i(v2i centre, s32 width, s32 height, bool upPositive = true)
 	{
 		pos = centre;
 		halfDim = v2i(width/2, height/2);
 		positiveY = upPositive;
 	}
-	Rect2(v2i centre, v2i dim, bool upPositive = true)
+	Rect2i(v2i centre, v2i dim, bool upPositive = true)
 	{
 		pos = centre;
 		halfDim = dim/2;
@@ -954,7 +958,7 @@ static inline v3f clampV3f(v3f v, f32 min, f32 max)
 	return result;
 }
 
-static inline bool pointInRect(v2i point, Rect2 rect)
+static inline bool pointInRect(v2i point, Rect2i rect)
 {
 	return point.x > rect.pos.x - rect.halfDim.w &&
 		point.x < rect.pos.x + rect.halfDim.w &&
@@ -990,15 +994,28 @@ f32 inverseSlope(v2i point1, v2i point2)
 	return (f32)(point2.x - point1.x) / (f32)(point2.y - point1.y);
 }
 
-static inline f32 magnitude(v2f v)
+static inline f32 lengthSquared(v2f v)
+{
+	return v.x*v.x + v.y*v.y;
+}
+static inline f32 lengthSquared(v2i v)
+{
+	return (f32)(v.x*v.x + v.y*v.y);
+}
+static inline f32 lengthSquared(v3f v)
+{
+	return v.x*v.x + v.y*v.y + v.z*v.z;
+}
+
+static inline f32 length(v2f v)
 {
 	return (f32)sqrt(v.x*v.x + v.y*v.y);
 }
-static inline f32 magnitude(v2i v)
+static inline f32 length(v2i v)
 {
 	return (f32)sqrt((f32)(v.x*v.x + v.y*v.y));
 }
-static inline f32 magnitude(v3f v)
+static inline f32 length(v3f v)
 {
 	return (f32)sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
 }
@@ -1007,9 +1024,9 @@ static inline v2f normalize(v2f v)
 {
 	v2f result = {};
 	
-	f32 vectorMagnitude = magnitude(v);
-	if (vectorMagnitude > 0.0f)
-		result = v/vectorMagnitude;
+	f32 vectorLength = length(v);
+	if (vectorLength > 0.0f)
+		result = v/vectorLength;
 	
 	return result;
 }
@@ -1017,9 +1034,9 @@ static inline v2i normalize(v2i v)
 {
 	v2i result = {};
 	
-	f32 vectorMagnitude = magnitude(v);
-	if (vectorMagnitude > 0.0f)
-		result = v/vectorMagnitude;
+	f32 vectorLength = length(v);
+	if (vectorLength > 0.0f)
+		result = v/vectorLength;
 	
 	return result;
 }
@@ -1027,9 +1044,9 @@ static inline v3f normalize(v3f v)
 {
 	v3f result = {};
 	
-	f32 vectorMagnitude = magnitude(v);
-	if (vectorMagnitude > 0)
-		result = v/vectorMagnitude;
+	f32 vectorLength = length(v);
+	if (vectorLength > 0)
+		result = v/vectorLength;
 	
 	return result;
 }

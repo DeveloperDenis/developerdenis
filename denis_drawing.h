@@ -79,7 +79,8 @@ static inline void drawPoint(Bitmap* buffer, v2i point, u32 colour)
 	drawPoint(buffer, point.x, point.y, colour);
 }
 
-//NOTE(denis): draws the bitmap onto the buffer with x and y specified in rect
+//NOTE(denis): draws the bitmap onto the buffer with x and y specified in pos
+// assumes pos is the top-left coordinate of the bitmap
 // clips bitmap width and height to rect width & rect height
 // uses pre-multiplied alpha blending
 static void drawBitmap(Bitmap* buffer, Bitmap* bitmap, v2i pos)
@@ -100,7 +101,7 @@ static void drawBitmap(Bitmap* buffer, Bitmap* bitmap, v2i pos)
 		for (s32 x = startX; x < endX; ++x, ++col)
 		{
 			// TODO(denis): this is all pretty slow,
-			// probably because of the double conversion. First u32->f32 then f32->u32
+			// probably partially because of the double conversion. First u32->f32 then f32->u32
 			
 			u32* inPixel = GET_PIXEL(bitmap, col, row);
 			u32* outPixel = GET_PIXEL(buffer, x, y);
@@ -134,11 +135,12 @@ static void drawBitmap(Bitmap* buffer, Bitmap* bitmap, v2i pos)
 		}
 	}
 }
+//NOTE(denis): this assumes x and y are the top-left coordinates
 static inline void drawBitmap(Bitmap* buffer, Bitmap* bitmap, u32 x, u32 y)
 {
 	drawBitmap(buffer, bitmap, v2i(x, y));
 }
-static inline void drawBitmap(Bitmap* buffer, Bitmap* bitmap, Rect2 rect)
+static inline void drawBitmap(Bitmap* buffer, Bitmap* bitmap, Rect2i rect)
 {
 	drawBitmap(buffer, bitmap, rect.topLeft());
 }
@@ -176,11 +178,16 @@ static void drawRect(Bitmap* buffer, s32 x, s32 y, s32 width, s32 height, u32 co
 		}
 	}
 }
-static inline void drawRect(Bitmap* buffer, Rect2 rect, u32 colour)
+static inline void drawRect(Bitmap* buffer, v2i pos, v2i dim, u32 colour)
+{
+	drawRect(buffer, pos.x, pos.y, dim.w, dim.h, colour);
+}
+static inline void drawRect(Bitmap* buffer, Rect2i rect, u32 colour)
 {
 	drawRect(buffer, rect.left(), rect.top(), rect.width(), rect.height(), colour);
 }
 
+// NOTE(denis): this assumes that x and y are the top-left coordinates
 static void drawRectOutline(Bitmap* buffer, s32 x, s32 y, s32 width, s32 height,
 							u32 colour, s32 borderWidth)
 {
@@ -210,7 +217,12 @@ static void drawRectOutline(Bitmap* buffer, s32 x, s32 y, s32 width, s32 height,
 		}
 	}
 }
-static inline void drawRectOutline(Bitmap* buffer, Rect2 rect, u32 colour, u32 borderWidth)
+// NOTE(denis): this assumes that pos is the top-left coordinate of the rect
+static inline void drawRectOutline(Bitmap* buffer, v2i pos, v2i dim, u32 colour, s32 borderWidth)
+{
+	drawRectOutline(buffer, pos.x, pos.y, dim.w, dim.h, colour, borderWidth);
+}
+static inline void drawRectOutline(Bitmap* buffer, Rect2i rect, u32 colour, u32 borderWidth)
 {
 	drawRectOutline(buffer, rect.left(), rect.top(), rect.width(), rect.height(),
 					colour, borderWidth);
