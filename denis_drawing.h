@@ -66,6 +66,15 @@ static inline u32 packColour(v3f colour)
 	
 	return 0xFF000000 | (r << 16) | (g << 8) | b;
 }
+static inline u32 packColour(v4f colour)
+{
+	u8 r = (u8)(0xFF * colour.r);
+	u8 g = (u8)(0xFF * colour.g);
+	u8 b = (u8)(0xFF * colour.b);
+	u8 a = (u8)(0xFF * colour.a);
+	
+	return (a << 24) | (r << 16) | (g << 8) | b;
+}
 
 static inline void drawPoint(Bitmap* buffer, s32 x, s32 y, u32 colour)
 {
@@ -186,6 +195,21 @@ static inline void drawRect(Bitmap* buffer, Rect2i rect, u32 colour)
 {
 	drawRect(buffer, rect.left(), rect.top(), rect.width(), rect.height(), colour);
 }
+static inline void drawRect(Bitmap* buffer, s32 x, s32 y, s32 width, s32 height, v4f colour)
+{
+	u32 packedColour = packColour(colour);
+	drawRect(buffer, x, y, width, height, packedColour);
+}
+static inline void drawRect(Bitmap* buffer, v2i pos, v2i dim, v4f colour)
+{
+	u32 packedColour = packColour(colour);
+	drawRect(buffer, pos.x, pos.y, dim.w, dim.h, packedColour);
+}
+static inline void drawRect(Bitmap* buffer, Rect2i rect, v4f colour)
+{
+	u32 packedColour = packColour(colour);
+	drawRect(buffer, rect.left(), rect.top(), rect.width(), rect.height(), packedColour);
+}
 
 // NOTE(denis): this assumes that x and y are the top-left coordinates
 static void drawRectOutline(Bitmap* buffer, s32 x, s32 y, s32 width, s32 height,
@@ -222,10 +246,27 @@ static inline void drawRectOutline(Bitmap* buffer, v2i pos, v2i dim, u32 colour,
 {
 	drawRectOutline(buffer, pos.x, pos.y, dim.w, dim.h, colour, borderWidth);
 }
-static inline void drawRectOutline(Bitmap* buffer, Rect2i rect, u32 colour, u32 borderWidth)
+static inline void drawRectOutline(Bitmap* buffer, Rect2i rect, u32 colour, s32 borderWidth)
 {
 	drawRectOutline(buffer, rect.left(), rect.top(), rect.width(), rect.height(),
 					colour, borderWidth);
+}
+static inline void drawRectOutline(Bitmap* buffer, s32 x, s32 y, s32 width, s32 height,
+								   v4f colour, s32 borderWidth)
+{
+	u32 packedColour = packColour(colour);
+	drawRectOutline(buffer, x, y, width, height, packedColour, borderWidth);
+}
+static inline void drawRectOutline(Bitmap* buffer, v2i pos, v2i dim, v4f colour, s32 borderWidth)
+{
+	u32 packedColour = packColour(colour);
+	drawRectOutline(buffer, pos.x, pos.y, dim.w, dim.h, packedColour, borderWidth);
+}
+static inline void drawRectOutline(Bitmap* buffer, Rect2i rect, v4f colour, s32 borderWidth)
+{
+	u32 packedColour = packColour(colour);
+	drawRectOutline(buffer, rect.left(), rect.top(), rect.width(), rect.height(), packedColour,
+					borderWidth);
 }
 
 //NOTE(denis): (x, y) is the centre of the circle

@@ -53,6 +53,12 @@ do							\
 
 #define ARRAY_COUNT(array) (sizeof(array)/sizeof((array)[0]))
 
+#define SWAP(a, b, type) do { \
+	type c = a; \
+	a = b; \
+	b = c; \
+} while(0)
+
 // copied from float.h
 #define F32_MAX 3.402823466e+38F
 
