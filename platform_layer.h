@@ -3,18 +3,7 @@
 
 #include "denis_types.h"
 #include "denis_math.h"
-
-
-struct Controller
-{
-    bool upPressed;
-    bool downPressed;
-    bool leftPressed;
-    bool rightPressed;
-	
-    bool actionPressed;
-	bool actionWasPressed;
-};
+#include "keyboard.h"
 
 struct Mouse
 {
@@ -48,7 +37,7 @@ struct Input
     Pen pen;
     Touch touch;
     Mouse mouse;
-    Controller controller;
+	Keyboard keyboard;
 };
 
 #define PLATFORM_MEDIA_PLAY_FILE(name) void (name)(char* fileName)

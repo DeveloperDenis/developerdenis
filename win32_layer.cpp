@@ -375,55 +375,20 @@ static LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, W
 		case WM_KEYDOWN:
 		case WM_SYSKEYDOWN:
 		{
-			if (wParam == VK_UP)
-			{
-				_input.controller.upPressed = true;
-			}
-			else if (wParam == VK_DOWN)
-			{
-				_input.controller.downPressed = true;
-			}
-			else if (wParam == VK_LEFT)
-			{
-				_input.controller.leftPressed = true;
-			}
-			else if (wParam == VK_RIGHT)
-			{
-				_input.controller.rightPressed = true;
-			}
-			
-			if (wParam == VK_SPACE)
-			{
-				_input.controller.actionPressed = true;
-				_input.controller.actionWasPressed = false;
-			}
+			ASSERT(wParam < ARRAY_COUNT(_input.keyboard.keys));
+			// TODO(denis): do I want to do a translation between the windows virtual key codes
+			// and whatever my representation is? Probably can better answer after I 
+			// implement this in Linux
+			_input.keyboard.keys[wParam].pressed = true;
+			_input.keyboard.keys[wParam].changed = (lParam & (1 << 30)) == 0;
 		} break;
 		
 		case WM_KEYUP:
 		case WM_SYSKEYUP:
 		{
-			if (wParam == VK_UP)
-			{
-				_input.controller.upPressed = false;
-			}
-			else if (wParam == VK_DOWN)
-			{
-				_input.controller.downPressed = false;
-			}
-			else if (wParam == VK_LEFT)
-			{
-				_input.controller.leftPressed = false;
-			}
-			else if (wParam == VK_RIGHT)
-			{
-				_input.controller.rightPressed = false;
-			}
-			
-			if (wParam == VK_SPACE)
-			{
-				_input.controller.actionPressed = false;
-				_input.controller.actionWasPressed = true;
-			}
+			ASSERT(wParam < ARRAY_COUNT(_input.keyboard.keys));
+			_input.keyboard.keys[wParam].pressed = false;
+			_input.keyboard.keys[wParam].changed = true;
 		} break;
 		
 		case WM_MOUSEMOVE:
@@ -772,7 +737,6 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE, LPSTR /*cmdLine*/, int)
 		
 		bool disableLeftWasPressed = _input.mouse.leftWasPressed && oldInput.mouse.leftPressed;
 		bool disableRightWasPressed = _input.mouse.rightWasPressed && oldInput.mouse.rightPressed;
-		bool disableActionWasPressed = _input.controller.actionWasPressed && oldInput.controller.actionPressed;
 		
 		oldInput = _input;
 		if (disableLeftWasPressed)
@@ -785,8 +749,13 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE, LPSTR /*cmdLine*/, int)
 			_input.mouse.rightWasPressed = false;
 			_input.mouse.rightClickStartPos = v2i(-1, -1);
 		}
-		if (disableActionWasPressed)
-			_input.controller.actionWasPressed = false;
+		
+		// we only allow the transitioned state to last for one frame
+		for (u32 i = 0; i < ARRAY_COUNT(_input.keyboard.keys); ++i)
+		{
+			if (_input.keyboard.keys[i].changed)
+				_input.keyboard.keys[i].changed = false;
+		}
 	}
 	
 	timeEndPeriod(sleepGranularity);
