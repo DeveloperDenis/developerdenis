@@ -47,6 +47,12 @@ static inline void freeBitmap(Bitmap* bitmap)
 	bitmap->stride = 0;
 }
 
+// TODO(denis): not sure about this name
+static inline v4f getPremultColour(f32 r, f32 b, f32 g, f32 a)
+{
+	return v4f(r*a, b*a, g*a, a);
+}
+
 static inline v4f unpackColour(u32 colour)
 {
 	v4f result;
@@ -163,6 +169,11 @@ static inline void fillBitmap(Bitmap* bitmap, u32 colour)
 			drawPoint(bitmap, col, row, colour);
 		}
 	}
+}
+static inline void fillBitmap(Bitmap* bitmap, v4f colour)
+{
+	u32 packedColour = packColour(colour);
+	fillBitmap(bitmap, packedColour);
 }
 
 //NOTE(denis): (x, y) is the top left of the rectangle
