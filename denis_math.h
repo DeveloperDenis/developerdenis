@@ -334,6 +334,12 @@ struct Rect2i
 	
 	bool positiveY;
 	
+	Rect2i(bool upPositive = true)
+	{
+		pos = v2i();
+		halfDim = v2i();
+		positiveY = upPositive;
+	}
 	Rect2i(s32 x, s32 y, s32 width, s32 height, bool upPositive = true)
 	{
 		pos = v2i(x, y);
