@@ -206,20 +206,61 @@ static inline void drawRect(Bitmap* buffer, Rect2i rect, u32 colour)
 {
 	drawRect(buffer, rect.left(), rect.top(), rect.width(), rect.height(), colour);
 }
+
+// NOTE(denis): these functions assume a premultiplied colour vector, and they do proper
+// alpha blending
 static inline void drawRect(Bitmap* buffer, s32 x, s32 y, s32 width, s32 height, v4f colour)
 {
-	u32 packedColour = packColour(colour);
-	drawRect(buffer, x, y, width, height, packedColour);
+	ASSERT(width >= 0 && height >= 0);
+	
+	if (x + width < 0 || y + height < 0)
+		return;
+	
+	u32 startX = MAX(0, x);
+	u32 startY = MAX(0, y);
+	
+	u32 endX = MIN(buffer->dim.w, x + width);
+	u32 endY = MIN(buffer->dim.h, y + height);
+	
+	for (u32 row = startY; row < endY; ++row)
+	{
+		for (u32 col = startX; col < endX; ++col)
+		{
+			u32* outPixel = GET_PIXEL(buffer, col, row);
+			
+			f32 inR = colour.r*255.0f;
+			f32 inG = colour.g*255.0f;
+			f32 inB = colour.b*255.0f;
+			f32 inA = colour.a;
+			
+			f32 outR = (f32)(((*outPixel) & 0x00FF0000) >> 16);
+			f32 outG = (f32)(((*outPixel) & 0x0000FF00) >> 8);
+			f32 outB = (f32)((*outPixel) & 0x000000FF);
+			f32 outA = (f32)(((*outPixel) & 0xFF000000) >> 24);
+			f32 outAFraction = outA / 255.0f;
+			
+			f32 r = outR*(1.0f - inA) + inR;
+			f32 g = outG*(1.0f - inA) + inG;
+			f32 b = outB*(1.0f - inA) + inB;
+			f32 a = inA + outAFraction*(1.0f - inA);
+			
+			u32 rByte = (u32)r;
+			u32 gByte = (u32)g;
+			u32 bByte = (u32)b;
+			u32 aByte = (u32)(a * 255.0f);
+			
+			u32 outColour = (aByte << 24) | (rByte << 16) | (gByte << 8) | (bByte);
+			drawPoint(buffer, col, row, outColour);
+		}
+	}
 }
 static inline void drawRect(Bitmap* buffer, v2i pos, v2i dim, v4f colour)
 {
-	u32 packedColour = packColour(colour);
-	drawRect(buffer, pos.x, pos.y, dim.w, dim.h, packedColour);
+	drawRect(buffer, pos.x, pos.y, dim.w, dim.h, colour);
 }
 static inline void drawRect(Bitmap* buffer, Rect2i rect, v4f colour)
 {
-	u32 packedColour = packColour(colour);
-	drawRect(buffer, rect.left(), rect.top(), rect.width(), rect.height(), packedColour);
+	drawRect(buffer, rect.left(), rect.top(), rect.width(), rect.height(), colour);
 }
 
 // NOTE(denis): this assumes that x and y are the top-left coordinates

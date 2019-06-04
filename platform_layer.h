@@ -7,28 +7,28 @@
 
 struct Mouse
 {
-    v2i pos;
+    v2f pos;
 	
     bool leftPressed;
     bool leftWasPressed;
-    v2i leftClickStartPos;
+    v2f leftClickStartPos;
 	
     bool rightPressed;
     bool rightWasPressed;
-    v2i rightClickStartPos;
+    v2f rightClickStartPos;
 };
 
 struct Touch
 {
     //TODO(denis): eventually make this hold 10 different points?
     u32 numActivePoints;
-    v2i points[5];
+    v2f points[5];
 };
 
 struct Pen
 {
     u32 pressure;
-	v2i pos;
+	v2f pos;
     bool usingEraser;
 };
 
@@ -67,7 +67,7 @@ struct Memory;
 
 //TODO(denis): change this to just "APP_INIT"?
 #define APP_INIT_CALL(name) void (name)(Platform platform, Memory* mem, Bitmap* screen)
-#define APP_UPDATE_CALL(name) void (name)(Platform platform, Memory* mem, Bitmap* screen, Input* input, f32 t)
+#define APP_UPDATE_CALL(name) void (name)(Platform platform, Memory* mem, Bitmap* screen, Input input, f32 t)
 
 #include "project_settings.h"
 
