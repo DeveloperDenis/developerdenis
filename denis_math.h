@@ -34,6 +34,7 @@ struct Matrix4f;
 
 struct Rect2i;
 struct Rect2f;
+struct Rect3f;
 
 //----------------------------------------------------------------------------
 // Functions Declarations:
@@ -226,6 +227,12 @@ union v3f
 	};
 	struct
 	{
+		f32 w;
+		f32 l;
+		f32 h;
+	};
+	struct
+	{
 		v2f xy;
 		f32 _unused;
 	};
@@ -414,6 +421,36 @@ struct Rect2f
 	f32 width() { return halfDim.w*2.0f; }
 	f32 height() { return halfDim.h*2.0f; }
 	v2f dim() { return halfDim*2.0f; }
+};
+
+struct Rect3f
+{
+	v3f pos;
+	v3f halfDim;
+	
+	Rect3f() : pos(v3f()), halfDim(v3f()) {}
+	Rect3f(f32 x, f32 y, f32 z, f32 width, f32 length, f32 height)
+	{
+		pos = v3f(x, y, z);
+		halfDim = v3f(width/2.0f, length/2.0f, height/2.0f);
+	}
+	Rect3f(v3f centre, f32 width, f32 length, f32 height)
+	{
+		pos = centre;
+		halfDim = v3f(width/2.0f, length/2.0f, height/2.0f);
+	}
+	Rect3f(v3f centre, v3f dim)
+	{
+		pos = centre;
+		halfDim = dim/2.0f;
+	}
+	
+	f32 width() { return halfDim.w*2.0f; }
+	f32 length() { return halfDim.l*2.0f; }
+	f32 height() { return halfDim.h*2.0f; }
+	v3f dim() { return halfDim*2.0f; }
+	
+	Rect2f rect2() { return Rect2f(pos.xy, dim().xy); }
 };
 
 //---------------------------------------------------------------------------
