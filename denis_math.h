@@ -35,6 +35,7 @@ struct Matrix4f;
 struct Rect2i;
 struct Rect2f;
 struct Rect3f;
+struct Rect3i;
 
 //----------------------------------------------------------------------------
 // Functions Declarations:
@@ -192,6 +193,12 @@ union v3i
 		s32 r;
 		s32 g;
 		s32 b;
+	};
+	struct
+	{
+		s32 w;
+		s32 l;
+		s32 h;
 	};
 	struct
 	{
@@ -428,22 +435,35 @@ struct Rect3f
 	v3f pos;
 	v3f halfDim;
 	
-	Rect3f() : pos(v3f()), halfDim(v3f()) {}
-	Rect3f(f32 x, f32 y, f32 z, f32 width, f32 length, f32 height)
+	bool positiveY;
+	
+	Rect3f() : pos(v3f()), halfDim(v3f()), positiveY(true) {}
+	Rect3f(f32 x, f32 y, f32 z, f32 width, f32 length, f32 height, bool upPositive = true)
 	{
 		pos = v3f(x, y, z);
 		halfDim = v3f(width/2.0f, length/2.0f, height/2.0f);
+		positiveY = upPositive;
 	}
-	Rect3f(v3f centre, f32 width, f32 length, f32 height)
+	Rect3f(v3f centre, f32 width, f32 length, f32 height, bool upPositive = true)
 	{
 		pos = centre;
 		halfDim = v3f(width/2.0f, length/2.0f, height/2.0f);
+		positiveY = upPositive;
 	}
-	Rect3f(v3f centre, v3f dim)
+	Rect3f(v3f centre, v3f dim, bool upPositive = true)
 	{
 		pos = centre;
 		halfDim = dim/2.0f;
+		positiveY = upPositive;
 	}
+	
+	f32 left() { return pos.x - halfDim.w; }
+	f32 right() { return pos.x + halfDim.w; }
+	f32 back() { return positiveY ? pos.y + halfDim.l : pos.y - halfDim.l; }
+	f32 front() { return positiveY ? pos.y - halfDim.l : pos.y + halfDim.l; }
+	// the positiveY here is needed for drawing 3D rects on a 2D screen properly
+	f32 top() { return positiveY ? pos.z + halfDim.h : pos.z - halfDim.h; }
+	f32 bottom() { return positiveY? pos.z - halfDim.h : pos.z + halfDim.h; }
 	
 	f32 width() { return halfDim.w*2.0f; }
 	f32 length() { return halfDim.l*2.0f; }
@@ -451,6 +471,49 @@ struct Rect3f
 	v3f dim() { return halfDim*2.0f; }
 	
 	Rect2f rect2() { return Rect2f(pos.xy, dim().xy); }
+};
+
+struct Rect3i
+{
+	v3i pos;
+	v3i halfDim;
+	
+	bool positiveY;
+	
+	Rect3i() : pos(v3i()), halfDim(v3i()), positiveY(true) {}
+	Rect3i(s32 x, s32 y, s32 z, s32 width, s32 length, s32 height, bool upY = true)
+	{
+		pos = v3i(x, y, z);
+		halfDim = v3i(width/2, length/2, height/2);
+		positiveY = upY;
+	}
+	Rect3i(v3i centre, s32 width, s32 length, s32 height, bool upY = true)
+	{
+		pos = centre;
+		halfDim = v3i(width/2, length/2, height/2);
+		positiveY = upY;
+	}
+	Rect3i(v3i centre, v3i dim, bool upY)
+	{
+		pos = centre;
+		halfDim = dim/2;
+		positiveY = upY;
+	}
+	
+	s32 left() { return pos.x - halfDim.w; }
+	s32 right() { return pos.x + halfDim.w; }
+	s32 back() { return positiveY ? pos.y + halfDim.l : pos.y - halfDim.l; }
+	s32 front() { return positiveY ? pos.y - halfDim.l : pos.y + halfDim.l; }
+	// the positiveY here is needed for drawing 3D rects on a 2D screen properly
+	s32 top() { return positiveY ? pos.z + halfDim.h : pos.z - halfDim.h; }
+	s32 bottom() { return positiveY? pos.z - halfDim.h : pos.z + halfDim.h; }
+	
+	s32 width() { return halfDim.w*2; }
+	s32 length() { return halfDim.l*2; }
+	s32 height() { return halfDim.h*2; }
+	v3i dim() { return halfDim*2; }
+	
+	Rect2i rect2() { return Rect2i(pos.xy, dim().xy, positiveY); }
 };
 
 //---------------------------------------------------------------------------
