@@ -3,6 +3,12 @@
 
 #include "denis_math.h"
 
+#if !defined(STB_IMAGE_IMPLEMENTATION)
+#define STBI_ONLY_PNG
+#define STB_IMAGE_IMPLEMENTATION
+#endif
+#include "stb_image.h"
+
 #define GET_PIXEL(bitmap, x, y) ((u32*)((u8*)(bitmap)->pixels + (y)*(bitmap)->stride) + (x))
 
 /*
@@ -45,6 +51,39 @@ static inline void freeBitmap(Bitmap* bitmap)
 	HEAP_FREE(bitmap->pixels);
 	bitmap->dim = v2i(0, 0);
 	bitmap->stride = 0;
+}
+
+// TODO(denis): should this be in this file?
+// converts image file into pre-mulitplied alpha bitmap
+static Bitmap loadImage(char* imagePath)
+{
+	Bitmap result = {};
+	
+	// stbi_load returns pixel colours in format AABBGGRR, but we want AARRGGBB
+	int width, height, bytesPerPixel;
+	result.pixels = (u32*)stbi_load(imagePath, &width, &height, &bytesPerPixel, 0);
+	
+	for (int i = 0; i < width*height; ++i)
+	{
+		f32 red = (f32)(result.pixels[i] & 0x000000FF);
+		f32 blue = (f32)((result.pixels[i] & 0x00FF0000) >> 16);
+		f32 green = (f32)((result.pixels[i] & 0x0000FF00) >> 8);
+		f32 alpha = (f32)((result.pixels[i] & 0xFF000000) >> 24);
+		
+		f32 alphaFraction = alpha / 255.0f;
+		
+		u32 outRed = (u32)(red*alphaFraction + 0.5f);
+		u32 outGreen = (u32)(green*alphaFraction + 0.5f);
+		u32 outBlue = (u32)(blue*alphaFraction + 0.5f);
+		u32 outAlpha = (u32)alpha;
+		
+		result.pixels[i] = (outAlpha << 24) | (outRed << 16) | (outGreen << 8) | outBlue;
+	}
+	
+	result.dim.w = width;
+	result.dim.h = height;
+	result.stride = result.dim.w*sizeof(u32);
+	return result;
 }
 
 // TODO(denis): not sure about this name

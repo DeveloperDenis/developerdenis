@@ -42,6 +42,7 @@ struct Rect3i;
 
 static inline bool pointInRect(v2i point, Rect2i rect);
 static inline bool pointInRect(v2f point, Rect2f rect);
+static inline bool pointInRect(v3f point, Rect3f rect);
 
 static inline bool pointInCircle(v2i point, v2i pos, s32 radius);
 static inline bool pointInCircle(v2f point, v2f pos, s32 radius);
@@ -173,6 +174,11 @@ union v2f
 		this->x = this->x * right;
 		this->y = this->y * right;
 		return *this;
+	}
+	
+	f32& operator[](u32 index)
+	{
+		return e[index];
 	}
 };
 
@@ -1077,6 +1083,15 @@ static inline bool pointInRect(v2f point, Rect2f rect)
 		point.x < rect.pos.x + rect.halfDim.w &&
 		point.y < rect.pos.y + rect.halfDim.h &&
 		point.y > rect.pos.y - rect.halfDim.h;
+}
+static inline bool pointInRect(v3f point, Rect3f rect)
+{
+	return point.x > rect.pos.x - rect.halfDim.w &&
+		point.x < rect.pos.x + rect.halfDim.w &&
+		point.y < rect.pos.y + rect.halfDim.l &&
+		point.y > rect.pos.y - rect.halfDim.l &&
+		point.z < rect.pos.z + rect.halfDim.h &&
+		point.z > rect.pos.z - rect.halfDim.h;
 }
 
 //TODO(denis): for now this only checks the smallest rect that contains the given circle
