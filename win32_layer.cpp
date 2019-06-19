@@ -627,7 +627,11 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE, LPSTR /*cmdLine*/, int)
     FILETIME lastDLLTime = getFileWriteTime(DLL_FILE_NAME);
 	
     //TODO(denis): should probably let the user set the size of this
-    void* mainMemory = VirtualAlloc(0, GIGABYTE(1), MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE);
+	Memory memory = {};
+	memory.size = GIGABYTE(1);
+	memory.mem= VirtualAlloc(0, memory.size, MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE);
+	memory.tempSize = MEGABYTE(10);
+	memory.tempMem = VirtualAlloc(0, memory.tempSize, MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE);
 	
 	u32 sleepGranularity = 1; // in ms
 	bool granularSleep = timeBeginPeriod(sleepGranularity) == TIMERR_NOERROR;
@@ -657,7 +661,7 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE, LPSTR /*cmdLine*/, int)
 	f32 timeS = 0.0f;
 	f32 secondsPerFrame = 1.0f / (f32)FPS_TARGET;
 	
-	appInit(_platform, (Memory*)mainMemory, &screen);
+	appInit(_platform, memory, &screen);
 	
     while (_running)
     {
@@ -699,7 +703,7 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE, LPSTR /*cmdLine*/, int)
 		screen.dim = _backBuffer.dim;
 		screen.stride = screen.dim.w*sizeof(u32);
 		
-	    appUpdate(_platform, (Memory*)mainMemory, &screen, _input, (f32)timeS);
+	    appUpdate(_platform, memory, &screen, _input, (f32)timeS);
 		
 		if (!_mediaSession)
 			RedrawWindow(_windowHandle, 0, 0, RDW_INVALIDATE|RDW_INTERNALPAINT);

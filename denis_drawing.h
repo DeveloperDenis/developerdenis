@@ -9,6 +9,9 @@
 #endif
 #include "stb_image.h"
 
+// TODO(denis): I don't know if I like this being included here
+#include "memory_pools.h"
+
 #define GET_PIXEL(bitmap, x, y) ((u32*)((u8*)(bitmap)->pixels + (y)*(bitmap)->stride) + (x))
 
 /*
@@ -30,7 +33,26 @@ struct Bitmap
  * FUNCTIONS
  */
 
-//TODO(denis): use memory from a pre-allocated pool, rather than dynamic allocation?
+// TODO(denis): I don't know if I want all this bitmap allocating and de-allocating done
+// in this file
+
+// uses a pre-defined memory pool to allocate memory
+static inline Bitmap allocBitmap(MemoryPool* pool, s32 width, s32 height)
+{
+	Bitmap result = {};
+	
+	result.dim = v2i(width, height);
+	result.stride = width*sizeof(u32);
+	result.pixels = (u32*)pushBlock(pool, width*height*sizeof(u32));
+	
+	return result;
+}
+static inline Bitmap allocBitmap(MemoryPool* pool, v2i dim)
+{
+	return allocBitmap(pool, dim.w, dim.h);
+}
+
+// allocates from the heap
 static inline Bitmap allocBitmap(s32 width, s32 height)
 {
 	Bitmap result = {};
@@ -46,6 +68,16 @@ static inline Bitmap allocBitmap(v2i dim)
 	return allocBitmap(dim.w, dim.h);
 }
 
+// returns memory taken from a pre-defined memory pool
+// NOTE(denis): memory pools are stacks, so this has to be done before allocating more memory
+static inline void freeBitmap(MemoryPool* pool, Bitmap* bitmap)
+{
+	popBlock(pool, bitmap->dim.w*bitmap->dim.h*sizeof(u32));
+	bitmap->dim = v2i();
+	bitmap->stride = 0;
+}
+
+// frees data from the heap
 static inline void freeBitmap(Bitmap* bitmap)
 {
 	HEAP_FREE(bitmap->pixels);
@@ -55,20 +87,22 @@ static inline void freeBitmap(Bitmap* bitmap)
 
 // TODO(denis): should this be in this file?
 // converts image file into pre-mulitplied alpha bitmap
-static Bitmap loadImage(char* imagePath)
+static Bitmap loadImage(MemoryPool* pool, char* imagePath)
 {
 	Bitmap result = {};
 	
 	// stbi_load returns pixel colours in format AABBGGRR, but we want AARRGGBB
 	int width, height, bytesPerPixel;
-	result.pixels = (u32*)stbi_load(imagePath, &width, &height, &bytesPerPixel, 0);
+	u32* pixels = (u32*)stbi_load(imagePath, &width, &height, &bytesPerPixel, 0);
+	
+	result.pixels = (u32*)pushBlock(pool, width*height*bytesPerPixel);
 	
 	for (int i = 0; i < width*height; ++i)
 	{
-		f32 red = (f32)(result.pixels[i] & 0x000000FF);
-		f32 blue = (f32)((result.pixels[i] & 0x00FF0000) >> 16);
-		f32 green = (f32)((result.pixels[i] & 0x0000FF00) >> 8);
-		f32 alpha = (f32)((result.pixels[i] & 0xFF000000) >> 24);
+		f32 red = (f32)(pixels[i] & 0x000000FF);
+		f32 blue = (f32)((pixels[i] & 0x00FF0000) >> 16);
+		f32 green = (f32)((pixels[i] & 0x0000FF00) >> 8);
+		f32 alpha = (f32)((pixels[i] & 0xFF000000) >> 24);
 		
 		f32 alphaFraction = alpha / 255.0f;
 		
@@ -79,6 +113,8 @@ static Bitmap loadImage(char* imagePath)
 		
 		result.pixels[i] = (outAlpha << 24) | (outRed << 16) | (outGreen << 8) | outBlue;
 	}
+	
+	free(pixels);
 	
 	result.dim.w = width;
 	result.dim.h = height;
