@@ -75,7 +75,7 @@ struct Memory
 
 //TODO(denis): change this to just "APP_INIT"?
 #define APP_INIT_CALL(name) void (name)(Platform platform, Memory memory, Bitmap* screen)
-#define APP_UPDATE_CALL(name) void (name)(Platform platform, Memory memory, Bitmap* screen, Input input, f32 t)
+#define APP_UPDATE_CALL(name) void (name)(Platform platform, Memory memory, Bitmap* screen, Input* input, f32 t)
 
 #include "project_settings.h"
 

@@ -703,7 +703,7 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE, LPSTR /*cmdLine*/, int)
 		screen.dim = _backBuffer.dim;
 		screen.stride = screen.dim.w*sizeof(u32);
 		
-	    appUpdate(_platform, memory, &screen, _input, (f32)timeS);
+	    appUpdate(_platform, memory, &screen, &_input, (f32)timeS);
 		
 		if (!_mediaSession)
 			RedrawWindow(_windowHandle, 0, 0, RDW_INVALIDATE|RDW_INTERNALPAINT);
