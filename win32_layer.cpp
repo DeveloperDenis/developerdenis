@@ -21,7 +21,7 @@
 #include "platform_layer.h"
 
 #define EXTRACT_MOUSE_POS_FROM_MESSAGE(lParam, wParam, basePos) \
-v2f((f32)GET_X_LPARAM(lParam), (f32)GET_Y_LPARAM(lParam)) - v2f(_backBuffer.pos)
+v2f((f32)GET_X_LPARAM(lParam), (f32)GET_Y_LPARAM(lParam)) - v2f(basePos)
 
 typedef APP_INIT_CALL(*appInitCallPtr);
 typedef APP_UPDATE_CALL(*appUpdateCallPtr);
@@ -646,8 +646,8 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE, LPSTR /*cmdLine*/, int)
     //SetProcessDpiAwareness(PROCESS_SYSTEM_DPI_AWARE);
 	
 	Input oldInput = {};
-    _input.mouse.leftClickStartPos = v2f(-1.0, -1.0);
-    _input.mouse.rightClickStartPos = v2f(-1.0, -1.0);
+    _input.mouse.leftClickStartPos = v2f(-1.0f, -1.0f);
+    _input.mouse.rightClickStartPos = v2f(-1.0f, -1.0f);
 	
 	Bitmap screen;
 	screen.pixels = (u32*)_backBuffer.data;
