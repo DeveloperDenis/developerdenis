@@ -247,9 +247,16 @@ union v3f
 	struct
 	{
 		v2f xy;
-		f32 _unused;
+		f32 _z;
+	};
+	struct
+	{
+		f32 _x;
+		v2f yz;
 	};
 	f32 e[3];
+	
+	v2f xz() { return v2f(x, z); }
 	
 	f32& operator[](u32 index)
 	{
@@ -476,7 +483,12 @@ struct Rect3f
 	f32 height() { return halfDim.h*2.0f; }
 	v3f dim() { return halfDim*2.0f; }
 	
-	Rect2f rect2() { return Rect2f(pos.xy, dim().xy); }
+	Rect2f frontFace() { return Rect2f(pos.xz(), dim().xz(), positiveY); }
+	Rect2f backFace() { return Rect2f(pos.xz(), dim().xz(), positiveY); }
+	Rect2f leftFace() { return Rect2f(pos.yz, dim().yz, positiveY); }
+	Rect2f rightFace() { return Rect2f(pos.yz, dim().yz, positiveY); }
+	Rect2f topFace() { return Rect2f(pos.xy, dim().xy, positiveY); }
+	Rect2f bottomFace() { return Rect2f(pos.xy, dim().xy, positiveY); }
 };
 
 struct Rect3i
