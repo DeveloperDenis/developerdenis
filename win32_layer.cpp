@@ -645,7 +645,6 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE, LPSTR /*cmdLine*/, int)
     //TODO(denis): might want to do this eventually
     //SetProcessDpiAwareness(PROCESS_SYSTEM_DPI_AWARE);
 	
-	Input oldInput = {};
     _input.mouse.leftClickStartPos = v2f(-1.0f, -1.0f);
     _input.mouse.rightClickStartPos = v2f(-1.0f, -1.0f);
 	
@@ -741,16 +740,12 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE, LPSTR /*cmdLine*/, int)
 		_currentTouchPoint = 0;
 		_input.touch = {};
 		
-		bool disableLeftWasPressed = _input.mouse.leftWasPressed && oldInput.mouse.leftPressed;
-		bool disableRightWasPressed = _input.mouse.rightWasPressed && oldInput.mouse.rightPressed;
-		
-		oldInput = _input;
-		if (disableLeftWasPressed)
+		if (_input.mouse.leftWasPressed)
 		{
 			_input.mouse.leftWasPressed = false;
 			_input.mouse.leftClickStartPos = v2f(-1.0, -1.0);
 		}
-		if (disableRightWasPressed)
+		if (_input.mouse.rightWasPressed)
 		{
 			_input.mouse.rightWasPressed = false;
 			_input.mouse.rightClickStartPos = v2f(-1.0, -1.0);
