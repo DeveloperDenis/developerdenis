@@ -38,7 +38,7 @@ struct Rect3f;
 struct Rect3i;
 
 //----------------------------------------------------------------------------
-// Functions Declarations:
+// Function Declarations:
 
 static inline bool pointInRect(v2i point, Rect2i rect);
 static inline bool pointInRect(v2f point, Rect2f rect);

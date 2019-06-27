@@ -251,6 +251,28 @@ static PLATFORM_MEDIA_PLAY_FILE(win32_mediaPlayFile)
 	PropVariantClear(&propVariantStart);
 }
 
+static PLATFORM_CHANGE_CURSOR(win32_changeCursor)
+{
+	switch(newType)
+	{
+		case CURSOR_NONE:
+		SetCursor(0);
+		break;
+		
+		case CURSOR_POINTER:
+		SetCursor(LoadCursorA(0, IDC_ARROW));
+		break;
+		
+		case CURSOR_HAND:
+		SetCursor(LoadCursorA(0, IDC_HAND));
+		break;
+		
+		case CURSOR_TEXT:
+		SetCursor(LoadCursorA(0, IDC_IBEAM));
+		break;
+	}
+}
+
 //NOTE(denis): user must free the returned string
 static char* getProgramPathName()
 {
@@ -558,8 +580,7 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE, LPSTR /*cmdLine*/, int)
     windowClass.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
     windowClass.lpfnWndProc = win32_messageCallback;
     windowClass.hInstance = instance;
-    windowClass.hCursor = LoadCursor(0, IDC_ARROW);
-    windowClass.lpszClassName = "win32WindowClass";
+	windowClass.lpszClassName = "win32WindowClass";
     windowClass.hbrBackground = (HBRUSH)(COLOR_BACKGROUND);
 	
     if (!RegisterClassEx(&windowClass))
@@ -656,6 +677,7 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE, LPSTR /*cmdLine*/, int)
 	
 	_platform.mediaPlayFile = win32_mediaPlayFile;
 	_platform.mediaGetState = win32_mediaGetState;
+	_platform.changeCursor = win32_changeCursor;
 	
 	f32 timeS = 0.0f;
 	f32 secondsPerFrame = 1.0f / (f32)FPS_TARGET;

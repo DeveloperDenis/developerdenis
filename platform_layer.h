@@ -41,7 +41,7 @@ struct Input
 };
 
 #define PLATFORM_MEDIA_PLAY_FILE(name) void (name)(char* fileName)
-typedef PLATFORM_MEDIA_PLAY_FILE(*mediaPlayFilePtr);
+typedef PLATFORM_MEDIA_PLAY_FILE(*MediaPlayFilePtr);
 
 enum MediaPlayerState
 {
@@ -51,15 +51,27 @@ enum MediaPlayerState
 	MEDIA_FINISHED
 };
 #define PLATFORM_MEDIA_GET_STATE(name) MediaPlayerState (name)()
-typedef PLATFORM_MEDIA_GET_STATE(*mediaGetStatePtr);
+typedef PLATFORM_MEDIA_GET_STATE(*MediaGetStatePtr);
+
+enum CursorType
+{
+	CURSOR_NONE,
+	CURSOR_POINTER,
+	CURSOR_HAND,
+	CURSOR_TEXT
+};
+#define PLATFORM_CHANGE_CURSOR(name) void(name)(CursorType newType)
+typedef PLATFORM_CHANGE_CURSOR(*ChangeCursorPtr);
 
 //NOTE(denis): platform functions for the app to use
 struct Platform
 {
 	//TODO(denis): add things like thread creation, etc.
 	
-	mediaPlayFilePtr mediaPlayFile;
-	mediaGetStatePtr mediaGetState;
+	ChangeCursorPtr changeCursor;
+	
+	MediaPlayFilePtr mediaPlayFile;
+	MediaGetStatePtr mediaGetState;
 };
 
 struct Memory
