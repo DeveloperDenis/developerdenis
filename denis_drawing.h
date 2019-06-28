@@ -33,6 +33,69 @@ struct Bitmap
  * FUNCTIONS
  */
 
+// TODO(denis): not sure about this name
+static inline v4f getPremultColour(f32 r, f32 b, f32 g, f32 a)
+{
+	return v4f(r*a, b*a, g*a, a);
+}
+
+static inline v4f unpackColour(u32 colour)
+{
+	v4f result;
+	result.r = (f32)((colour & 0x00FF0000) >> 16) / 255.0f;
+	result.g = (f32)((colour & 0x0000FF00) >> 8) / 255.0f;
+	result.b = (f32)(colour & 0x000000FF) / 255.0f;
+	result.a = (f32)(colour >> 24) / 255.0f;
+	
+	return result;
+}
+
+static inline u32 packColour(v3f colour)
+{
+	u8 r = (u8)(0xFF * colour.r);
+	u8 g = (u8)(0xFF * colour.g);
+	u8 b = (u8)(0xFF * colour.b);
+	
+	return 0xFF000000 | (r << 16) | (g << 8) | b;
+}
+static inline u32 packColour(v4f colour)
+{
+	u8 r = (u8)(0xFF * colour.r);
+	u8 g = (u8)(0xFF * colour.g);
+	u8 b = (u8)(0xFF * colour.b);
+	u8 a = (u8)(0xFF * colour.a);
+	
+	return (a << 24) | (r << 16) | (g << 8) | b;
+}
+
+static inline void drawPoint(Bitmap* buffer, s32 x, s32 y, u32 colour)
+{
+	if (x < 0 || x >= buffer->dim.w || y < 0 || y >= buffer->dim.h)
+		return;
+	
+	*(GET_PIXEL(buffer, x, y)) = colour;
+}
+static inline void drawPoint(Bitmap* buffer, v2i point, u32 colour)
+{
+	drawPoint(buffer, point.x, point.y, colour);
+}
+
+static inline void fillBitmap(Bitmap* bitmap, u32 colour)
+{
+	for (u32 row = 0; row < (u32)bitmap->dim.h; ++row)
+	{
+		for (u32 col = 0; col < (u32)bitmap->dim.w; ++col)
+		{
+			drawPoint(bitmap, col, row, colour);
+		}
+	}
+}
+static inline void fillBitmap(Bitmap* bitmap, v4f colour)
+{
+	u32 packedColour = packColour(colour);
+	fillBitmap(bitmap, packedColour);
+}
+
 // TODO(denis): I don't know if I want all this bitmap allocating and de-allocating done
 // in this file
 
@@ -44,6 +107,8 @@ static inline Bitmap allocBitmap(MemoryPool* pool, s32 width, s32 height)
 	result.dim = v2i(width, height);
 	result.stride = width*sizeof(u32);
 	result.pixels = (u32*)pushBlock(pool, width*height*sizeof(u32));
+	
+	fillBitmap(&result, 0);
 	
 	return result;
 }
@@ -60,6 +125,8 @@ static inline Bitmap allocBitmap(s32 width, s32 height)
 	result.dim = v2i(width, height);
 	result.stride = width * sizeof(u32);
 	result.pixels = (u32*)HEAP_ALLOC(width*height*sizeof(u32));
+	
+	fillBitmap(&result, 0);
 	
 	return result;
 }
@@ -120,53 +187,6 @@ static Bitmap loadImage(MemoryPool* pool, char* imagePath)
 	result.dim.h = height;
 	result.stride = result.dim.w*sizeof(u32);
 	return result;
-}
-
-// TODO(denis): not sure about this name
-static inline v4f getPremultColour(f32 r, f32 b, f32 g, f32 a)
-{
-	return v4f(r*a, b*a, g*a, a);
-}
-
-static inline v4f unpackColour(u32 colour)
-{
-	v4f result;
-	result.r = (f32)((colour & 0x00FF0000) >> 16) / 255.0f;
-	result.g = (f32)((colour & 0x0000FF00) >> 8) / 255.0f;
-	result.b = (f32)(colour & 0x000000FF) / 255.0f;
-	result.a = (f32)(colour >> 24) / 255.0f;
-	
-	return result;
-}
-
-static inline u32 packColour(v3f colour)
-{
-	u8 r = (u8)(0xFF * colour.r);
-	u8 g = (u8)(0xFF * colour.g);
-	u8 b = (u8)(0xFF * colour.b);
-	
-	return 0xFF000000 | (r << 16) | (g << 8) | b;
-}
-static inline u32 packColour(v4f colour)
-{
-	u8 r = (u8)(0xFF * colour.r);
-	u8 g = (u8)(0xFF * colour.g);
-	u8 b = (u8)(0xFF * colour.b);
-	u8 a = (u8)(0xFF * colour.a);
-	
-	return (a << 24) | (r << 16) | (g << 8) | b;
-}
-
-static inline void drawPoint(Bitmap* buffer, s32 x, s32 y, u32 colour)
-{
-	if (x < 0 || x >= buffer->dim.w || y < 0 || y >= buffer->dim.h)
-		return;
-	
-	*(GET_PIXEL(buffer, x, y)) = colour;
-}
-static inline void drawPoint(Bitmap* buffer, v2i point, u32 colour)
-{
-	drawPoint(buffer, point.x, point.y, colour);
 }
 
 //NOTE(denis): draws the bitmap onto the buffer with x and y specified in pos
@@ -233,22 +253,6 @@ static inline void drawBitmap(Bitmap* buffer, Bitmap* bitmap, u32 x, u32 y)
 static inline void drawBitmap(Bitmap* buffer, Bitmap* bitmap, Rect2i rect)
 {
 	drawBitmap(buffer, bitmap, rect.topLeft());
-}
-
-static inline void fillBitmap(Bitmap* bitmap, u32 colour)
-{
-	for (u32 row = 0; row < (u32)bitmap->dim.h; ++row)
-	{
-		for (u32 col = 0; col < (u32)bitmap->dim.w; ++col)
-		{
-			drawPoint(bitmap, col, row, colour);
-		}
-	}
-}
-static inline void fillBitmap(Bitmap* bitmap, v4f colour)
-{
-	u32 packedColour = packColour(colour);
-	fillBitmap(bitmap, packedColour);
 }
 
 //NOTE(denis): (x, y) is the top left of the rectangle

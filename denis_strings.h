@@ -332,25 +332,37 @@ static char* concatStrings(char *a, char *b)
 	return result;
 }
 
-//TODO(denis): these functions do not handle negative numbers properly
-static bool toString(s32 num, char* buffer, u32 maxLength)
+// TODO(denis): could just use log base 10 here?
+static u32 getIntegerLength(s32 num)
 {
-	bool success = false;
 	u32 length = 0;
 	s32 temp = num;
-	while (temp > 0)
+	while (temp != 0)
 	{
 		temp /= 10;
 		++length;
 	}
+	return length;
+}
+
+static bool toString(s32 num, char* buffer, u32 maxLength)
+{
+	bool success = false;
+	u32 length = getIntegerLength(num);
+	
+	if (num < 0)
+		++length;
 	
 	if (maxLength > 0 && length > 0 && length <= maxLength)
 	{
-		temp = num;
-		for (u32 i = 0; i < length && temp > 0; ++i, temp /= 10)
+		s32 temp = ABS_VALUE(num);
+		for (u32 i = 0; i < length && temp != 0; ++i, temp /= 10)
 		{
 			buffer[(length - 1) - i] = '0' + (temp % 10);
 		}
+		
+		if (num < 0)
+			buffer[0] = '-';
 		
 		success = true;
 	}
@@ -361,15 +373,10 @@ static bool toString(s32 num, char* buffer, u32 maxLength)
 static char* toString(s32 num)
 {
 	char* result = 0;
-	u32 length = 0;
+	u32 length = getIntegerLength(num);
 	
-	//TODO(denis): probably not a huge deal, but this is computed twice
-	s32 temp = num;
-	while (temp > 0)
-	{
-		temp /= 10;
+	if (num < 0)
 		++length;
-	}
 	
 	if (length > 0)
 	{
@@ -379,6 +386,87 @@ static char* toString(s32 num)
 			HEAP_FREE(result);
 			result = 0;
 		}
+	}
+	
+	return result;
+}
+static bool toString(f32 num, u32 decimalPlaces, char* buffer, u32 maxLength)
+{
+	bool success = false;
+	
+	s32 integerPart = (s32)num;
+	u32 integerPartLength = getIntegerLength(integerPart);
+	if (integerPart < 0)
+		++integerPartLength;
+	
+	s32 decimalPart = ABS_VALUE((s32)((num - integerPart)*pow(10, decimalPlaces)));
+	u32 decimalPartLength = getIntegerLength(decimalPart);
+	
+	// the +2 is for the /0 char and the decimal point
+	u32 length = integerPartLength + decimalPlaces + 2;
+	
+	if (num < 0 && integerPartLength == 0)
+		++length;
+	
+	if (integerPartLength == 0)
+		++length;
+	
+	if (maxLength > 0 && length > 0 && length <= maxLength)
+	{
+		u32 index = 0;
+		
+		if (num < 0 && integerPartLength == 0)
+			buffer[index++] = '-';
+		
+		if (integerPartLength == 0)
+			buffer[index++] = '0';
+		
+		
+		toString(integerPart, buffer + index, integerPartLength);
+		index += integerPartLength;
+		
+		buffer[index++] = '.';
+		
+		if (decimalPartLength < decimalPlaces)
+		{
+			u32 difference = decimalPlaces - decimalPartLength;
+			for (u32 i = 0; i < difference; ++i)
+			{
+				buffer[index+i] = '0';
+			}
+			
+			toString(decimalPart, buffer + index + difference, decimalPartLength);
+		}
+		else
+		{
+			toString(decimalPart, buffer + index, decimalPartLength);
+		}
+		
+		index += decimalPlaces;
+		buffer[index] = 0;
+		
+		success = true;
+	}
+	
+	return success;
+}
+static char* toString(f32 num, u32 decimalPlaces)
+{
+	char* result = 0;
+	
+	u32 integerLength = getIntegerLength((s32)num);
+	u32 length =  integerLength + decimalPlaces + 2; // +2 for /0 and decimal point
+	
+	if (num < 0)
+		++length;
+	if (integerLength == 0)
+		++length;
+	
+	result = (char*)HEAP_ALLOC(length);
+	if (!toString(num, decimalPlaces, result, length))
+	{
+		HEAP_FREE(result);
+		result = 0;
 	}
 	
 	return result;
