@@ -426,10 +426,10 @@ static LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, W
 		{
 			v2f mousePos = EXTRACT_MOUSE_POS_FROM_MESSAGE(lParam, wParam, _backBuffer.pos);
 			_input.mouse.pos = mousePos;
-			_input.mouse.leftClickStartPos = mousePos;
 			
-			_input.mouse.leftWasPressed = false;
-			_input.mouse.leftPressed = true;
+			_input.mouse.buttons[MOUSE_LEFT].startPos = mousePos;
+			_input.mouse.buttons[MOUSE_LEFT].wasPressed = false;
+			_input.mouse.buttons[MOUSE_LEFT].pressed = true;
 		} break;
 		
 		case WM_LBUTTONUP:
@@ -437,18 +437,18 @@ static LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, W
 			v2f mousePos = EXTRACT_MOUSE_POS_FROM_MESSAGE(lParam, wParam, _backBuffer.pos);
 			_input.mouse.pos = mousePos;
 			
-			_input.mouse.leftWasPressed = true;
-			_input.mouse.leftPressed = false;
+			_input.mouse.buttons[MOUSE_LEFT].wasPressed = true;
+			_input.mouse.buttons[MOUSE_LEFT].pressed = false;
 		} break;
 		
 		case WM_RBUTTONDOWN:
 		{
 			v2f mousePos = EXTRACT_MOUSE_POS_FROM_MESSAGE(lParam, wParam, _backBuffer.pos);
 			_input.mouse.pos = mousePos;
-			_input.mouse.rightClickStartPos = mousePos;
 			
-			_input.mouse.rightWasPressed = false;
-			_input.mouse.rightPressed = true;
+			_input.mouse.buttons[MOUSE_RIGHT].startPos = mousePos;
+			_input.mouse.buttons[MOUSE_RIGHT].wasPressed = false;
+			_input.mouse.buttons[MOUSE_RIGHT].pressed = true;
 		} break;
 		
 		case WM_RBUTTONUP:
@@ -456,8 +456,8 @@ static LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, W
 			v2f mousePos = EXTRACT_MOUSE_POS_FROM_MESSAGE(lParam, wParam, _backBuffer.pos);
 			_input.mouse.pos = mousePos;
 			
-			_input.mouse.rightWasPressed = true;
-			_input.mouse.rightPressed = false;
+			_input.mouse.buttons[MOUSE_RIGHT].wasPressed = true;
+			_input.mouse.buttons[MOUSE_RIGHT].pressed = false;
 		} break;
 		
 		//NOTE(denis): used for touch and pen input
@@ -666,8 +666,10 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE, LPSTR /*cmdLine*/, int)
     //TODO(denis): might want to do this eventually
     //SetProcessDpiAwareness(PROCESS_SYSTEM_DPI_AWARE);
 	
-    _input.mouse.leftClickStartPos = v2f(-1.0f, -1.0f);
-    _input.mouse.rightClickStartPos = v2f(-1.0f, -1.0f);
+	for (u32 i = 0; i < MOUSE_BUTTON_COUNT; ++i)
+	{
+		_input.mouse.buttons[i].startPos = v2f(-1.0f, -1.0f);
+	}
 	
 	Bitmap screen;
 	screen.pixels = (u32*)_backBuffer.data;
@@ -762,15 +764,13 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE, LPSTR /*cmdLine*/, int)
 		_currentTouchPoint = 0;
 		_input.touch = {};
 		
-		if (_input.mouse.leftWasPressed)
+		for (u32 i = 0; i < MOUSE_BUTTON_COUNT; ++i)
 		{
-			_input.mouse.leftWasPressed = false;
-			_input.mouse.leftClickStartPos = v2f(-1.0, -1.0);
-		}
-		if (_input.mouse.rightWasPressed)
-		{
-			_input.mouse.rightWasPressed = false;
-			_input.mouse.rightClickStartPos = v2f(-1.0, -1.0);
+			if (_input.mouse.buttons[i].wasPressed)
+			{
+				_input.mouse.buttons[i].wasPressed = false;
+				_input.mouse.buttons[i].startPos = v2f(-1.0f, -1.0f);
+			}
 		}
 		
 		// we only allow the transitioned state to last for one frame

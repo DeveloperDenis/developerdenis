@@ -4,19 +4,7 @@
 #include "denis_types.h"
 #include "denis_math.h"
 #include "keyboard.h"
-
-struct Mouse
-{
-    v2f pos;
-	
-    bool leftPressed;
-    bool leftWasPressed;
-    v2f leftClickStartPos;
-	
-    bool rightPressed;
-    bool rightWasPressed;
-    v2f rightClickStartPos;
-};
+#include "mouse.h"
 
 struct Touch
 {
