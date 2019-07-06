@@ -17,6 +17,7 @@ enum
 {
 	KEY_TAB = 0x09,
 	KEY_ENTER = 0x0D,
+	KEY_CTRL = 0x11,
 	KEY_SPACEBAR = 0x20,
 	KEY_LEFT_ARROW = 0x25,
 	KEY_UP_ARROW = 0x26,
@@ -29,6 +30,9 @@ enum
 	KEY_M = 0x4D,
 	KEY_S = 0x53,
 	KEY_W = 0x57,
+	KEY_X = 0x58,
+	KEY_Y = 0x59,
+	KEY_Z = 0x5A,
 	KEY_F1 = 0x70,
 	KEY_F2 = 0x71,
 	KEY_F3 = 0x72,
@@ -42,6 +46,10 @@ enum
 	KEY_F11 = 0x7A,
 	KEY_F12 = 0x7B,
 	KEY_ESC = 0x1B,
+	KEY_LEFT_SHIFT = 0xA0,
+	KEY_RIGHT_SHIFT = 0xA1,
+	KEY_LEFT_CTRL = 0xA2,
+	KEY_RIGHT_CTRL = 0xA3,
 	KEY_TILDE = 0xC0
 };
 
