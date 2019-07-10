@@ -50,13 +50,13 @@ static inline bool pointInCircle(v2f point, v2f pos, s32 radius);
 static inline f32 slope(v2i point1, v2i point2);
 static inline f32 inverseSlope(v2i point1, v2i point2);
 
-static inline f32 lengthSquared(v2f v);
-static inline f32 lengthSquared(v2i v);
-static inline f32 lengthSquared(v3f v);
+static inline f32 normSquared(v2f v);
+static inline f32 normSquared(v2i v);
+static inline f32 normSquared(v3f v);
 
-static inline f32 length(v2f v);
-static inline f32 length(v2i v);
-static inline f32 length(v3f v);
+static inline f32 norm(v2f v);
+static inline f32 norm(v2i v);
+static inline f32 norm(v3f v);
 
 static inline v2f normalize(v2f v);
 static inline v2i normalize(v2i v);
@@ -1128,28 +1128,28 @@ f32 inverseSlope(v2i point1, v2i point2)
 	return (f32)(point2.x - point1.x) / (f32)(point2.y - point1.y);
 }
 
-static inline f32 lengthSquared(v2f v)
+static inline f32 normSquared(v2f v)
 {
 	return v.x*v.x + v.y*v.y;
 }
-static inline f32 lengthSquared(v2i v)
+static inline f32 normSquared(v2i v)
 {
 	return (f32)(v.x*v.x + v.y*v.y);
 }
-static inline f32 lengthSquared(v3f v)
+static inline f32 normSquared(v3f v)
 {
 	return v.x*v.x + v.y*v.y + v.z*v.z;
 }
 
-static inline f32 length(v2f v)
+static inline f32 norm(v2f v)
 {
 	return (f32)sqrt(v.x*v.x + v.y*v.y);
 }
-static inline f32 length(v2i v)
+static inline f32 norm(v2i v)
 {
 	return (f32)sqrt((f32)(v.x*v.x + v.y*v.y));
 }
-static inline f32 length(v3f v)
+static inline f32 norm(v3f v)
 {
 	return (f32)sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
 }
@@ -1158,9 +1158,9 @@ static inline v2f normalize(v2f v)
 {
 	v2f result = {};
 	
-	f32 vectorLength = length(v);
-	if (vectorLength > 0.0f)
-		result = v/vectorLength;
+	f32 length = norm(v);
+	if (length > 0.0f)
+		result = v/length;
 	
 	return result;
 }
@@ -1168,9 +1168,9 @@ static inline v2i normalize(v2i v)
 {
 	v2i result = {};
 	
-	f32 vectorLength = length(v);
-	if (vectorLength > 0.0f)
-		result = v/vectorLength;
+	f32 length = norm(v);
+	if (length > 0.0f)
+		result = v/length;
 	
 	return result;
 }
@@ -1178,9 +1178,9 @@ static inline v3f normalize(v3f v)
 {
 	v3f result = {};
 	
-	f32 vectorLength = length(v);
-	if (vectorLength > 0)
-		result = v/vectorLength;
+	f32 length = norm(v);
+	if (length > 0)
+		result = v/length;
 	
 	return result;
 }
