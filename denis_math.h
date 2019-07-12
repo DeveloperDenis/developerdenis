@@ -435,6 +435,7 @@ struct Rect2f
 	
 	v2f topLeft() { return v2f(left(), top()); }
 	v2f topRight() { return v2f(right(), top()); }
+	v2f bottomLeft() { return v2f(left(), bottom()); }
 	
 	void setLeft(f32 newLeft) { pos.x = newLeft + halfDim.w; }
 	void setTop(f32 newTop) { pos.y = positiveY ? newTop - halfDim.h : newTop + halfDim.h; }
