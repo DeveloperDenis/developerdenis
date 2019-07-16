@@ -378,8 +378,19 @@ static LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, W
 			_running = false;
 		} break;
 		
+		case WM_GETMINMAXINFO:
+		{
+			LPMINMAXINFO minMaxInfo = (LPMINMAXINFO)lParam;
+			minMaxInfo->ptMinTrackSize.x = 100;
+			minMaxInfo->ptMinTrackSize.y = 100;
+		} break;
+		
 		case WM_SIZE:
 		{
+			// TODO(denis): do something special on minimize?
+			if (wParam == SIZE_MINIMIZED)
+				break;
+			
 			RECT clientRect;
 			GetClientRect(windowHandle, &clientRect);
 			_windowWidth = clientRect.right - clientRect.left;
@@ -391,6 +402,7 @@ static LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, W
 			}
 			
 			_backBuffer.bitmapInfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+			
 #if defined(DEBUG)
 			_backBuffer.bitmapInfo.bmiHeader.biWidth = clientRect.right - DEBUG_PADDING;
 			_backBuffer.bitmapInfo.bmiHeader.biHeight = -(clientRect.bottom - DEBUG_PADDING);
@@ -398,6 +410,14 @@ static LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, W
 			_backBuffer.bitmapInfo.bmiHeader.biWidth = clientRect.right;
 			_backBuffer.bitmapInfo.bmiHeader.biHeight = -clientRect.bottom; //NOTE(denis): positive means origin in lower-left, negative means origin in upper-left
 #endif
+			
+			// NOTE(denis): these fix the issue of the DEBUG_PADDING making my bitmap dimensions
+			// not match up with the window dimensions when they are 0 (or really low)
+			if (_windowWidth == 0 || _backBuffer.bitmapInfo.bmiHeader.biWidth < 0)
+				_backBuffer.bitmapInfo.bmiHeader.biWidth = 0;
+			if (_windowHeight == 0 || _backBuffer.bitmapInfo.bmiHeader.biHeight > 0)
+				_backBuffer.bitmapInfo.bmiHeader.biHeight = 0;
+			
 			_backBuffer.dim = v2i(_backBuffer.bitmapInfo.bmiHeader.biWidth, -_backBuffer.bitmapInfo.bmiHeader.biHeight);
 			_backBuffer.bitmapInfo.bmiHeader.biPlanes = 1;
 			_backBuffer.bitmapInfo.bmiHeader.biBitCount = 32;
