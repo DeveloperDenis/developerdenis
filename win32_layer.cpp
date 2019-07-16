@@ -16,10 +16,10 @@
 #undef near
 #undef far
 
-#include "denis_types.h"
-#include "denis_drawing.h"
-#include "denis_math.h"
-#include "denis_strings.h"
+#include "libdd_types.h"
+#include "libdd_drawing.h"
+#include "libdd_math.h"
+#include "libdd_strings.h"
 
 #include "platform_layer.h"
 
