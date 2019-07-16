@@ -173,7 +173,7 @@ static inline char* createStringFromArray(char* array, int size)
 	return result;
 }
 
-static inline char* duplicateString(char *string)
+static inline char* duplicateString(char *string, MemoryPool* pool = 0)
 {
 	char *result = 0;
 	
@@ -181,7 +181,14 @@ static inline char* duplicateString(char *string)
 	{
 		u32 numChars = getStringSize(string);
 		
-		result = (char*)HEAP_ALLOC(numChars+1);
+		if (pool)
+		{
+			result = (char*)pushBlock(pool, numChars+1);
+		}
+		else
+		{
+			result = (char*)HEAP_ALLOC(numChars+1);
+		}
 		
 		for (u32 i = 0; i < numChars; ++i)
 		{

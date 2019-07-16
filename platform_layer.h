@@ -2,6 +2,7 @@
 #define PLATFORM_LAYER_H_
 
 #include "denis_types.h"
+#include "memory_pools.h"
 #include "denis_math.h"
 #include "keyboard.h"
 #include "mouse.h"
@@ -51,6 +52,9 @@ enum CursorType
 #define PLATFORM_CHANGE_CURSOR(name) void(name)(CursorType newType)
 typedef PLATFORM_CHANGE_CURSOR(*ChangeCursorPtr);
 
+#define PLATFORM_OPEN_FILE_DIALOG(name) char*(name)(MemoryPool* pool)
+typedef PLATFORM_OPEN_FILE_DIALOG(*OpenFileDialogPtr);
+
 //NOTE(denis): platform functions for the app to use
 struct Platform
 {
@@ -60,6 +64,8 @@ struct Platform
 	
 	MediaPlayFilePtr mediaPlayFile;
 	MediaGetStatePtr mediaGetState;
+	
+	OpenFileDialogPtr openFileDialog;
 };
 
 struct Memory

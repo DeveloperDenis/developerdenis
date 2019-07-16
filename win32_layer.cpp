@@ -1,10 +1,13 @@
 #define NOMINMAX
-#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 #include "Strsafe.h"
 #include "Windowsx.h"
 #include "timeapi.h"
+#include "Objbase.h"
+#include "Shobjidl.h"
+
+#include <comdef.h>
 
 #include "mfapi.h"
 #include "mfidl.h"
@@ -251,6 +254,41 @@ static PLATFORM_MEDIA_PLAY_FILE(win32_mediaPlayFile)
 	PropVariantClear(&propVariantStart);
 }
 
+static PLATFORM_OPEN_FILE_DIALOG(win32_openFileDialog)
+{
+	IFileDialog* fileDialog = 0;
+	
+	HRESULT error = CoCreateInstance(CLSID_FileOpenDialog, 0, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&fileDialog));
+	
+	ASSERT(SUCCEEDED(error));
+	
+	error = fileDialog->Show(0);
+	if (error == HRESULT_FROM_WIN32(ERROR_CANCELLED))
+		return 0;
+	
+	ASSERT(SUCCEEDED(error));
+	
+	IShellItem* fileResult = 0;
+	error = fileDialog->GetResult(&fileResult);
+	ASSERT(SUCCEEDED(error));
+	
+	PWSTR fileString = 0;
+	error = fileResult->GetDisplayName(SIGDN_FILESYSPATH, &fileString);
+	//error = fileResult->GetDisplayName(SIGDN_NORMALDISPLAY, &fileString);
+	ASSERT(SUCCEEDED(error));
+	
+	_bstr_t bStr(fileString);
+	char* result = bStr;
+	
+	result = duplicateString(result, pool);
+	
+	CoTaskMemFree(fileString);
+	fileResult->Release();
+	fileDialog->Release();
+	
+	return result;
+}
+
 static PLATFORM_CHANGE_CURSOR(win32_changeCursor)
 {
 	switch(newType)
@@ -276,12 +314,12 @@ static PLATFORM_CHANGE_CURSOR(win32_changeCursor)
 //NOTE(denis): user must free the returned string
 static char* getProgramPathName()
 {
-    char *result = 0;
+	char *result = 0;
 	
-    TCHAR fileNameBuffer[MAX_PATH+1];
-    DWORD getFileNameResult = GetModuleFileName(NULL, fileNameBuffer, MAX_PATH+1);
-    if (getFileNameResult != 0 && GetLastError() != ERROR_INSUFFICIENT_BUFFER)
-    {
+	TCHAR fileNameBuffer[MAX_PATH+1];
+	DWORD getFileNameResult = GetModuleFileName(NULL, fileNameBuffer, MAX_PATH+1);
+	if (getFileNameResult != 0 && GetLastError() != ERROR_INSUFFICIENT_BUFFER)
+	{
 		char filePath[MAX_PATH+1] = {};
 		u32 indexOfLastSlash = 0;
 		for (int i = 0; i < MAX_PATH && fileNameBuffer[i] != 0; ++i)
@@ -293,43 +331,43 @@ static char* getProgramPathName()
 		copyIntoString(filePath, fileNameBuffer, 0, indexOfLastSlash);
 		
 		result = duplicateString(filePath);
-    }
-    else
-    {
+	}
+	else
+	{
 		//TODO(denis): try again with a bigger buffer?
-    }
+	}
 	
-    return result;
+	return result;
 }
 
 static FILETIME getFileWriteTime(char* fileName)
 {
-    FILETIME result = {};
+	FILETIME result = {};
 	
-    char* programPath = getProgramPathName();
-    char* fullFilePath = concatStrings(programPath, fileName);
+	char* programPath = getProgramPathName();
+	char* fullFilePath = concatStrings(programPath, fileName);
 	
-    WIN32_FIND_DATA findData;
-    HANDLE file = FindFirstFile(fileName, &findData);
+	WIN32_FIND_DATA findData;
+	HANDLE file = FindFirstFile(fileName, &findData);
 	
-    if (file != INVALID_HANDLE_VALUE)
-    {
+	if (file != INVALID_HANDLE_VALUE)
+	{
 		result = findData.ftLastWriteTime;
 		FindClose(file);
-    }
+	}
 	
-    HEAP_FREE(programPath);
-    HEAP_FREE(fullFilePath);
-    
-    return result;
+	HEAP_FREE(programPath);
+	HEAP_FREE(fullFilePath);
+	
+	return result;
 }
 
 static LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    LRESULT result = 0;
+	LRESULT result = 0;
 	
-    switch(message)
-    {
+	switch(message)
+	{
 		case WM_DESTROY:
 		{
 			_running = false;
@@ -568,32 +606,32 @@ static LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, W
 		{
 			result = DefWindowProc(windowHandle, message, wParam, lParam);
 		} break;
-    }
+	}
 	
-    return result;
+	return result;
 }
 
 int CALLBACK WinMain(HINSTANCE instance, HINSTANCE, LPSTR /*cmdLine*/, int)
 {	
-    WNDCLASSEX windowClass = {};
-    windowClass.cbSize = sizeof(WNDCLASSEX);
-    windowClass.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
-    windowClass.lpfnWndProc = win32_messageCallback;
-    windowClass.hInstance = instance;
+	WNDCLASSEX windowClass = {};
+	windowClass.cbSize = sizeof(WNDCLASSEX);
+	windowClass.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
+	windowClass.lpfnWndProc = win32_messageCallback;
+	windowClass.hInstance = instance;
 	windowClass.lpszClassName = "win32WindowClass";
-    windowClass.hbrBackground = (HBRUSH)(COLOR_BACKGROUND);
+	windowClass.hbrBackground = (HBRUSH)(COLOR_BACKGROUND);
 	
-    if (!RegisterClassEx(&windowClass))
-    {
+	if (!RegisterClassEx(&windowClass))
+	{
 		OutputDebugString("Error creating window class\n");
 		return 1;
-    }
+	}
 	
-    DWORD windowStyles = WS_OVERLAPPEDWINDOW|WS_VISIBLE;
-    if (!WINDOW_RESIZABLE)
-    {
+	DWORD windowStyles = WS_OVERLAPPEDWINDOW|WS_VISIBLE;
+	if (!WINDOW_RESIZABLE)
+	{
 		windowStyles = windowStyles ^ (WS_THICKFRAME | WS_MAXIMIZEBOX);
-    }
+	}
 	
 	_backBuffer.dim = v2i(WINDOW_WIDTH, WINDOW_HEIGHT);
 	v2i desiredClientDim = _backBuffer.dim;
@@ -604,8 +642,8 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE, LPSTR /*cmdLine*/, int)
 	_backBuffer.pos = v2i(DEBUG_PADDING/2, DEBUG_PADDING/2);
 #endif
 	
-    RECT windowRect = {0, 0, (LONG)desiredClientDim.w, (LONG)desiredClientDim.h};
-    AdjustWindowRectEx(&windowRect, WS_OVERLAPPEDWINDOW, FALSE, 0);
+	RECT windowRect = {0, 0, (LONG)desiredClientDim.w, (LONG)desiredClientDim.h};
+	AdjustWindowRectEx(&windowRect, WS_OVERLAPPEDWINDOW, FALSE, 0);
 	
 	u32 windowWidth = windowRect.right - windowRect.left;
 	u32 windowHeight = windowRect.bottom - windowRect.top;
@@ -613,41 +651,41 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE, LPSTR /*cmdLine*/, int)
 	u32 screenWidth = (u32)GetSystemMetrics(SM_CXSCREEN);
 	u32 screenHeight = (u32)GetSystemMetrics(SM_CYSCREEN);
 	
-    _windowHandle =
+	_windowHandle =
 		CreateWindowEx(0, windowClass.lpszClassName, WINDOW_TITLE,
 					   windowStyles,
 					   screenWidth/2 - windowWidth/2, screenHeight/2 - windowHeight/2,
 					   windowWidth, windowHeight,
 					   0, 0, instance, 0);
 	
-    if (!_windowHandle)
-    {
+	if (!_windowHandle)
+	{
 		OutputDebugString("Error creating window\n");
 		return 1;
-    }
+	}
 	
-    //NOTE(denis): load in the dll and the functions we need from it
-    //TODO(denis): for this project I haven't changed the working directory yet
-    //TODO(denis): since the change in working directory, this CopyFile call doesn't work properly
-    CopyFile(DLL_FILE_NAME, "running.dll", FALSE);
-    HMODULE mainDLL = LoadLibraryA("running.dll");
-    if (!mainDLL)
-    {
+	//NOTE(denis): load in the dll and the functions we need from it
+	//TODO(denis): for this project I haven't changed the working directory yet
+	//TODO(denis): since the change in working directory, this CopyFile call doesn't work properly
+	CopyFile(DLL_FILE_NAME, "running.dll", FALSE);
+	HMODULE mainDLL = LoadLibraryA("running.dll");
+	if (!mainDLL)
+	{
 		OutputDebugStringA("Error loading main dll\n");
 		return 1;
-    }
+	}
 	
 	appInitCallPtr appInit = (appInitCallPtr)GetProcAddress(mainDLL, APP_INIT_FUNCTION_NAME);
 	appUpdateCallPtr appUpdate = (appUpdateCallPtr)GetProcAddress(mainDLL, APP_UPDATE_FUNCTION_NAME);
-    if (!appUpdate)
-    {
+	if (!appUpdate)
+	{
 		OutputDebugStringA("Error loading appUpdate or appInit functions\n");
 		return 1;
-    }
+	}
 	
-    FILETIME lastDLLTime = getFileWriteTime(DLL_FILE_NAME);
+	FILETIME lastDLLTime = getFileWriteTime(DLL_FILE_NAME);
 	
-    //TODO(denis): should probably let the user set the size of this
+	//TODO(denis): should probably let the user set the size of this
 	Memory memory = {};
 	memory.size = GIGABYTE(1);
 	memory.mem= VirtualAlloc(0, memory.size, MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE);
@@ -657,14 +695,14 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE, LPSTR /*cmdLine*/, int)
 	u32 sleepGranularity = 1; // in ms
 	bool granularSleep = timeBeginPeriod(sleepGranularity) == TIMERR_NOERROR;
 	
-    LARGE_INTEGER countFrequency;
-    QueryPerformanceFrequency(&countFrequency); //NOTE(denis): counts/second
+	LARGE_INTEGER countFrequency;
+	QueryPerformanceFrequency(&countFrequency); //NOTE(denis): counts/second
 	
-    LARGE_INTEGER lastCounts;
-    QueryPerformanceCounter(&lastCounts); //NOTE(denis): counts
+	LARGE_INTEGER lastCounts;
+	QueryPerformanceCounter(&lastCounts); //NOTE(denis): counts
 	
-    //TODO(denis): might want to do this eventually
-    //SetProcessDpiAwareness(PROCESS_SYSTEM_DPI_AWARE);
+	//TODO(denis): might want to do this eventually
+	//SetProcessDpiAwareness(PROCESS_SYSTEM_DPI_AWARE);
 	
 	for (u32 i = 0; i < MOUSE_BUTTON_COUNT; ++i)
 	{
@@ -680,14 +718,15 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE, LPSTR /*cmdLine*/, int)
 	_platform.mediaPlayFile = win32_mediaPlayFile;
 	_platform.mediaGetState = win32_mediaGetState;
 	_platform.changeCursor = win32_changeCursor;
+	_platform.openFileDialog = win32_openFileDialog;
 	
 	f32 timeS = 0.0f;
 	f32 secondsPerFrame = 1.0f / (f32)FPS_TARGET;
 	
 	appInit(_platform, memory, &screen);
 	
-    while (_running)
-    {
+	while (_running)
+	{
 		FILETIME currentWriteTime = getFileWriteTime(DLL_FILE_NAME);
 		if (CompareFileTime(&lastDLLTime, &currentWriteTime) == -1)
 		{
@@ -702,7 +741,7 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE, LPSTR /*cmdLine*/, int)
 				FreeLibrary(mainDLL);
 				CopyFile(DLL_FILE_NAME, "running.dll", FALSE);
 				mainDLL = LoadLibraryA("running.dll");
-			    appUpdate = (appUpdateCallPtr)GetProcAddress(mainDLL, APP_UPDATE_FUNCTION_NAME);
+				appUpdate = (appUpdateCallPtr)GetProcAddress(mainDLL, APP_UPDATE_FUNCTION_NAME);
 				
 				ASSERT(appUpdate);
 			}
@@ -726,15 +765,15 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE, LPSTR /*cmdLine*/, int)
 		screen.dim = _backBuffer.dim;
 		screen.stride = screen.dim.w*sizeof(u32);
 		
-	    appUpdate(_platform, memory, &screen, &_input, (f32)timeS);
+		appUpdate(_platform, memory, &screen, &_input, (f32)timeS);
 		
 		if (!_mediaSession)
 			RedrawWindow(_windowHandle, 0, 0, RDW_INVALIDATE|RDW_INTERNALPAINT);
 		
 		LARGE_INTEGER currentCounts;
 		QueryPerformanceCounter(&currentCounts);
-	    u64 timePassed = currentCounts.QuadPart - lastCounts.QuadPart;
-	    timeS = (f32)timePassed / (f32)countFrequency.QuadPart;
+		u64 timePassed = currentCounts.QuadPart - lastCounts.QuadPart;
+		timeS = (f32)timePassed / (f32)countFrequency.QuadPart;
 		
 		//NOTE(denis): the epsilon is an attempt to lessen the effects of random spikes
 		//f32 epsilon = 0.01f;
