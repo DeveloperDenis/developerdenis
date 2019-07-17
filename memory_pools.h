@@ -66,7 +66,7 @@ static void* pushBlock(MemoryPool* pool, u32 dataSize)
 		{
 			// TODO(denis): find the smallest possible block that is >= allocSize to help
 			// reduce fragmentation? would that even help?
-			if (currBlock->size <= allocSize)
+			if (currBlock->size >= allocSize)
 			{
 				blockBase = currBlock;
 				
@@ -89,6 +89,7 @@ static void* pushBlock(MemoryPool* pool, u32 dataSize)
 				break;
 			}
 			
+			prevBlock = currBlock;
 			currBlock = currBlock->next;
 		}
 		
@@ -132,6 +133,7 @@ static void freeBlock(MemoryPool* pool, void* block)
 			return;
 		}
 		
+		prevBlock = currBlock;
 		currBlock = currBlock->next;
 	}
 	
