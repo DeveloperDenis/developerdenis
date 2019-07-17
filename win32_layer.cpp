@@ -406,7 +406,7 @@ static LRESULT CALLBACK win32_messageCallback(HWND windowHandle, UINT message, W
 #if defined(DEBUG)
 			_backBuffer.bitmapInfo.bmiHeader.biWidth = clientRect.right - DEBUG_PADDING;
 			_backBuffer.bitmapInfo.bmiHeader.biHeight = -(clientRect.bottom - DEBUG_PADDING);
-#elif
+#else
 			_backBuffer.bitmapInfo.bmiHeader.biWidth = clientRect.right;
 			_backBuffer.bitmapInfo.bmiHeader.biHeight = -clientRect.bottom; //NOTE(denis): positive means origin in lower-left, negative means origin in upper-left
 #endif
