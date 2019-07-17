@@ -27,6 +27,8 @@ struct MemoryPool
 
 static inline MemoryPool initMemoryPool(void* base, u32 maxSize, bool stackMode=false)
 {
+	ASSERT(base);
+	
 	MemoryPool pool = {};
 	pool.maxSize = maxSize;
 	pool.base = (u8*)base;
@@ -37,6 +39,7 @@ static inline MemoryPool initMemoryPool(void* base, u32 maxSize, bool stackMode=
 
 static inline void clearMemoryPool(MemoryPool* pool)
 {
+	ASSERT(pool);
 	pool->size = 0;
 	pool->blocks = 0;
 	pool->freeBlocks = 0;
@@ -44,6 +47,8 @@ static inline void clearMemoryPool(MemoryPool* pool)
 
 static void* pushBlock(MemoryPool* pool, u32 dataSize)
 {
+	ASSERT(pool);
+	
 	void* resultBlock = 0;
 	
 	if (pool->stackMode)
@@ -113,6 +118,10 @@ static void* pushBlock(MemoryPool* pool, u32 dataSize)
 
 static void freeBlock(MemoryPool* pool, void* block)
 {
+	if (!block)
+		return;
+	
+	ASSERT(pool);
 	ASSERT(!pool->stackMode);
 	
 	MemoryBlock* prevBlock = 0;
