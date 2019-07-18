@@ -47,6 +47,8 @@ do							\
 #define ASSERT(x)
 #endif
 
+#define INVALID_DEFAULT_CASE default: { ASSERT(false); } break
+
 #define KILOBYTE(num) ((num) * (u64)1024)
 #define MEGABYTE(num) (KILOBYTE(num) * (u64)1024)
 #define GIGABYTE(num) (MEGABYTE(num) * (u64)1024)
