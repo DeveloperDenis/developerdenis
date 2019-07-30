@@ -63,6 +63,7 @@ do							\
 
 // copied from float.h
 #define F32_MAX_VALUE 3.402823466e+38F
+#define F32_MIN_VALUE 1.1754943508e-38F
 
 #define S32_MIN_VALUE 0x80000000
 #define S32_MAX_VALUE 0x7FFFFFFF

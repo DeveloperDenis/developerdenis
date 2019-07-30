@@ -1,7 +1,7 @@
 #ifndef DENIS_STRINGS_H_
 #define DENIS_STRINGS_H_
 
-#include "libdd_types.h"
+#include "base_types.h"
 
 #define IS_LOWER_CASE(c) ((c) >= 'a' && (c) <= 'z')
 #define IS_UPPER_CASE(c) ((c) >= 'A' && (c) <= 'Z')

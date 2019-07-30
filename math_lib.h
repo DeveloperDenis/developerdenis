@@ -1,7 +1,7 @@
 #ifndef DENIS_MATH_H_
 #define DENIS_MATH_H_
 
-#include "libdd_types.h"
+#include "base_types.h"
 
 //TODO(denis): remove these eventually?
 #define _USE_MATH_DEFINES

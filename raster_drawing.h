@@ -1,7 +1,7 @@
 #if !defined(DENIS_DRAWING_H_)
 #define DENIS_DRAWING_H_
 
-#include "libdd_math.h"
+#include "math_lib.h"
 #include "memory_pools.h"
 
 #define GET_PIXEL(bitmap, x, y) ((u32*)((u8*)(bitmap)->pixels + (y)*(bitmap)->stride) + (x))
@@ -25,7 +25,6 @@ struct Bitmap
  * FUNCTIONS
  */
 
-// TODO(denis): not sure about this name
 static inline v4f getPremultColour(f32 r, f32 b, f32 g, f32 a)
 {
 	return v4f(r*a, b*a, g*a, a);
@@ -58,6 +57,38 @@ static inline u32 packColour(v4f colour)
 	u8 a = (u8)(0xFF * colour.a);
 	
 	return (a << 24) | (r << 16) | (g << 8) | b;
+}
+
+static u32 blendPreMultAlpha(u32 bufferColour, u32 colour)
+{
+	// TODO(denis): this is all pretty slow,
+	// probably partially because of the double conversion. First u32->f32 then f32->u32
+	
+	f32 inR = (f32)(((colour) & 0x00FF0000) >> 16);
+	f32 inG = (f32)(((colour) & 0x0000FF00) >> 8);
+	f32 inB = (f32)((colour) & 0x000000FF);
+	f32 inA = (f32)(((colour) & 0xFF000000) >> 24);
+	
+	f32 outR = (f32)(((bufferColour) & 0x00FF0000) >> 16);
+	f32 outG = (f32)(((bufferColour) & 0x0000FF00) >> 8);
+	f32 outB = (f32)((bufferColour) & 0x000000FF);
+	f32 outA = (f32)(((bufferColour) & 0xFF000000) >> 24);
+	
+	f32 inAFraction = inA / 255.0f;
+	f32 outAFraction = outA / 255.0f;
+	
+	f32 r = outR*(1.0f - inAFraction) + inR;
+	f32 g = outG*(1.0f - inAFraction) + inG;
+	f32 b = outB*(1.0f - inAFraction) + inB;
+	f32 a = inAFraction + outAFraction*(1.0f - inAFraction);
+	
+	u32 rByte = (u32)r;
+	u32 gByte = (u32)g;
+	u32 bByte = (u32)b;
+	u32 aByte = (u32)(a * 255.0f);
+	
+	u32 result = (aByte << 24) | (rByte << 16) | (gByte << 8) | (bByte);
+	return result;
 }
 
 static inline void drawPoint(Bitmap* buffer, s32 x, s32 y, u32 colour)
@@ -165,37 +196,10 @@ static void drawBitmap(Bitmap* buffer, Bitmap* bitmap, v2i pos)
 		u32 col = colOffset;
 		for (s32 x = startX; x < endX; ++x, ++col)
 		{
-			// TODO(denis): this is all pretty slow,
-			// probably partially because of the double conversion. First u32->f32 then f32->u32
-			
 			u32* inPixel = GET_PIXEL(bitmap, col, row);
 			u32* outPixel = GET_PIXEL(buffer, x, y);
 			
-			f32 inR = (f32)(((*inPixel) & 0x00FF0000) >> 16);
-			f32 inG = (f32)(((*inPixel) & 0x0000FF00) >> 8);
-			f32 inB = (f32)((*inPixel) & 0x000000FF);
-			f32 inA = (f32)(((*inPixel) & 0xFF000000) >> 24);
-			
-			f32 outR = (f32)(((*outPixel) & 0x00FF0000) >> 16);
-			f32 outG = (f32)(((*outPixel) & 0x0000FF00) >> 8);
-			f32 outB = (f32)((*outPixel) & 0x000000FF);
-			f32 outA = (f32)(((*outPixel) & 0xFF000000) >> 24);
-			
-			f32 inAFraction = inA / 255.0f;
-			f32 outAFraction = outA / 255.0f;
-			
-			f32 r = outR*(1.0f - inAFraction) + inR;
-			f32 g = outG*(1.0f - inAFraction) + inG;
-			f32 b = outB*(1.0f - inAFraction) + inB;
-			f32 a = inAFraction + outAFraction*(1.0f - inAFraction);
-			
-			u32 rByte = (u32)r;
-			u32 gByte = (u32)g;
-			u32 bByte = (u32)b;
-			u32 aByte = (u32)(a * 255.0f);
-			
-			u32 colour = (aByte << 24) | (rByte << 16) | (gByte << 8) | (bByte);
-			
+			u32 colour = blendPreMultAlpha(*outPixel, *inPixel);
 			*outPixel = colour;
 		}
 	}

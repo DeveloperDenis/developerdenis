@@ -1,9 +1,9 @@
 #if !defined(PLATFORM_LAYER_H_)
 #define PLATFORM_LAYER_H_
 
-#include "libdd_types.h"
+#include "base_types.h"
 #include "memory_pools.h"
-#include "libdd_math.h"
+#include "math_lib.h"
 #include "keyboard.h"
 #include "mouse.h"
 

@@ -16,10 +16,10 @@
 #undef near
 #undef far
 
-#include "libdd_types.h"
-#include "libdd_drawing.h"
-#include "libdd_math.h"
-#include "libdd_strings.h"
+#include "base_types.h"
+#include "raster_drawing.h"
+#include "math_lib.h"
+#include "string_functions.h"
 
 #include "platform_layer.h"
 
