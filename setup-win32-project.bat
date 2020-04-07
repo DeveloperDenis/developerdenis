@@ -1,4 +1,4 @@
-@echo off
+@echo on
 
 if %1.==. goto PROJECT_NAME_ERROR
 
@@ -10,7 +10,7 @@ mkdir src
 mkdir build
 mkdir data
 
-copy ..\developerdenis\build.bat src\
+copy ..\developerdenis\build_template.bat src\build.bat
 
 git clone https://github.com/DeveloperDenis/developerdenis.git
 
