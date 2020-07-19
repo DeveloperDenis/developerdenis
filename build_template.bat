@@ -15,7 +15,7 @@ REM customizable options for the project
 set compile_options=/Od /DDEBUG /DDENIS_WIN32
 
 REM common flags used for every compile
-set flags=/nologo /D_CRT_SECURE_NO_WARNINGS /Gm- /GR- /EHa- /Zi /FC /W4 /WX /wd4505 /wd4201 /wd4127
+set flags=/nologo /D_CRT_SECURE_NO_WARNINGS /Gm- /GR- /EHa- /Zi /FC /W4 /WX /wd4505 /wd4201 /wd4127 /wd4100
 set linker_flags=/incremental:no
 
 set includes=/I %denis_library% /I ..\src\
